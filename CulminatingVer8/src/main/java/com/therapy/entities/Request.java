@@ -223,7 +223,7 @@ public class Request extends Entity{
     	
     }
     
-    public void updateCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("requests");
     	

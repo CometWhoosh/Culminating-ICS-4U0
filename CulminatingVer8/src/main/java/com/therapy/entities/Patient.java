@@ -59,14 +59,6 @@ public class Patient extends User {
     	
     	Document patientDoc = patientCollection.find(eq(id)).first();
     	
-    	/*
-    	 protected String firstName;
-    	 protected String lastName;
-    	 protected String email;
-    	 protected byte[] hashedPassword;
-    	 protected byte[] salt;
-    	*/
-    	
     	firstName = patientDoc.getString("first_name");
     	lastName = patientDoc.getString("last_name");
     	email = patientDoc.getString("email");
@@ -124,7 +116,7 @@ public class Patient extends User {
     	
     }
     
-    public void updateCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("patients");
     	

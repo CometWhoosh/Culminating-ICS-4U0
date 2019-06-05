@@ -8,6 +8,8 @@
 </head>
 <body>
 
+<!-- TODO: Add text box for optional summary -->
+
 	<h1>Choose a Therapist</h1>
 	
 	<%@ page import="java.util.Map" %>
@@ -23,7 +25,7 @@
 	
 	<!-- REQUIRES servlet to have the path //requestTherapist -->
 	
-	<form method="post" action="/CulminatingVer8/requestTherapist">
+	<form method="post" id="form" action="/CulminatingVer8/requestTherapist">
 	
 		<% for(int i = 0; i < 10; i++) { %>
 			<lable><input type="radio" name="therapist" value="<%=therapistIds[i]%>"><%=names[i]%></lable>
@@ -34,6 +36,10 @@
 		<input type="submit" value="Next">
 	
 	</form>
+	
+	<textarea rows="10" cols="55" id="textarea" form="form">
+		Enter summary of you mental health issues (optional) ...
+	</textarea>
 	
 	
 	<form method="get" action="/CulminatingVer8/getTherapists">

@@ -100,16 +100,21 @@ public class SignUpServlet extends HttpServlet {
 			fields.put("email", email);
 			fields.put("password_hash", new Binary(hash));
 			fields.put("salt", new Binary(salt));
-			
+			/*
+			HttpSession session = request.getSession();
+			session.setAttribute("email", email);
+			session.setAttribute("user_type", userType);
+			*/
 			//send to next page
 						
 			try {
-				collection.insertOne(new Document(fields));
 				
+				collection.insertOne(new Document(fields));
+				/*
 				HttpSession session = request.getSession();
-				session.setAttribute("id", collection.find(eq("email", email)).first().getObjectId("_id"));
+				session.setAttribute("id", collection.find(eq("email", email)).first().getObjectId("_id").toHexString());
 				session.setAttribute("user_type", userType);
-
+				*/
 				
 			} catch(MongoWriteException e) {
 				//write to user saying to try again

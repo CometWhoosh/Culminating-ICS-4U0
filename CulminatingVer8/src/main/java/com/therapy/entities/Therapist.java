@@ -296,7 +296,7 @@ public class Therapist extends User {
     	
     }
     
-    public void updateCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("therapists");
     	

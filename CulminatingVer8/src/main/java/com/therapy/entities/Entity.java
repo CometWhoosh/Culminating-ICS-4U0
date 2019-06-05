@@ -23,7 +23,7 @@ public abstract class Entity {
 		return id;
 	}
 	
-	public abstract void updateCollection() throws MongoWriteException, MongoWriteConcernException, MongoException;
+	public abstract void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException;
 	
 	public abstract void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException;
 	
