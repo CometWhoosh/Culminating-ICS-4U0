@@ -102,12 +102,15 @@ public class SignUpServlet extends HttpServlet {
 			fields.put("salt", new Binary(salt));
 			
 			//send to next page
-			HttpSession session = request.getSession();
-			session.setAttribute("email", email);
-			session.setAttribute("user_type", userType);
-			
+						
 			try {
 				collection.insertOne(new Document(fields));
+				
+				HttpSession session = request.getSession();
+				session.setAttribute("id", collection.find(eq("email", email)).first().getObjectId("_id"));
+				session.setAttribute("user_type", userType);
+
+				
 			} catch(MongoWriteException e) {
 				//write to user saying to try again
 				response.sendRedirect(projectPath + "/signUp.jsp?databaseError=1");

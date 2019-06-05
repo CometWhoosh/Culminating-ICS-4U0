@@ -1,7 +1,7 @@
 package com.therapy.entities;
 
 
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -71,7 +71,8 @@ public class Chat extends Entity{
     /**
      * Creates a new <code>Chat</code> with a unique _id field, and no messages. 
      * After creation, the <code>Chat</code> is inserted into the <code>chats</code> 
-     * collection.
+     * collection. This is meant for chats that have not been created in the database
+     * yet.
      * 
      * @param patient   the patient using this chat
      * @param therapist the therapist using this chat
@@ -81,27 +82,21 @@ public class Chat extends Entity{
     	
     	MongoCollection<Document> collection = database.getCollection("chats");
     	
-    	ObjectId id = null; 
+    	ObjectId patientId = patient.getId();
+    	ObjectId therapistId = therapist.getId();
+    	Document chatDoc = collection.find(
+    			and(
+    					eq("patient_id", patientId), eq("therapist_id", therapistId)
+    			)).first();
     	
-    	boolean duplicateKey;
+    	ObjectId id = null;
     	
-    	do {
-    		
-    		duplicateKey = false;
-    		
-    		String random = Integer.valueOf(new Random().nextInt()).toString();
-        	byte[] possibleIdAsBytes = (patient.getEmail() + "P" + therapist.getEmail() + "T" + random).getBytes();
-        	
-        	id = new ObjectId(possibleIdAsBytes);
-        	
-        	try {
-        		collection.insertOne(new Document("_id", id));
-        	} catch(MongoWriteException e) {
-        		if(e.getCode() == 11000)
-        		duplicateKey = true;
-        	}
-        	
-    	} while(duplicateKey);
+    	if(chatDoc == null) {
+    		id = chatDoc.getObjectId("_id");
+    	} else {
+    		throw new IllegalStateException("This constructor is only for Chats that"
+    				+ "have not been created in the database yet");
+    	}
     	
     	this.id = id;
     	this.database = database;

@@ -1,5 +1,7 @@
 package com.therapy.servlets;
 
+import static com.mongodb.client.model.Filters.eq;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -15,7 +17,8 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
-import static com.mongodb.client.model.Filters.*;
+import com.therapy.entities.Request;
+import com.therapy.entities.Therapist;
 
 @WebServlet("/requestTherapist")
 public class RequestTherapistServlet extends HttpServlet {
@@ -41,11 +44,13 @@ public class RequestTherapistServlet extends HttpServlet {
 		
 		MongoCollection<Document> collection = database.getCollection("therapists");
 		
+		HttpSession session = new Session()
+		
 		ObjectId therapistId = new ObjectId(request.getParameter("therapist"));
 		
-		Document therapistDoc = collection.find(eq(therapistId)).first();
+		Therapist therapist = new Therapist(therapistId, database);
 		
-		
+		Request request = new Request();
 		
 	}
 	

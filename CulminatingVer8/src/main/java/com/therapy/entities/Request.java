@@ -1,5 +1,6 @@
 package com.therapy.entities;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.util.Random;
@@ -69,27 +70,21 @@ public class Request extends Entity{
 		
 		MongoCollection<Document> collection = database.getCollection("requests");
 		
-		ObjectId id = null; 
+		ObjectId patientId = patient.getId();
+    	ObjectId therapistId = therapist.getId();
+    	Document requestDoc = collection.find(
+    			and(
+    					eq("patient_id", patientId), eq("therapist_id", therapistId)
+    			)).first();
     	
-    	boolean duplicateKey;
+    	ObjectId id = null;
     	
-    	do {
-    		
-    		duplicateKey = false;
-    		
-    		String random = Integer.valueOf(new Random().nextInt()).toString();
-        	byte[] possibleIdAsBytes = (patient.getEmail() + "P" + therapist.getEmail() + "T" + random).getBytes();
-        	
-        	id = new ObjectId(possibleIdAsBytes);
-        	
-        	try {
-        		collection.insertOne(new Document("_id", id));
-        	} catch(MongoWriteException e) {
-        		if(e.getCode() == 11000)
-        		duplicateKey = true;
-        	}
-        	
-    	} while(duplicateKey);
+    	if(requestDoc == null) {
+    		id = requestDoc.getObjectId("_id");
+    	} else {
+    		throw new IllegalStateException("This constructor is only for Requests that"
+    				+ "have not been created in the database yet");
+    	}
     	
     	this.id = id;
     	this.database = database;
@@ -97,10 +92,53 @@ public class Request extends Entity{
     	this.patient = patient;
     	this.therapist = therapist;
     	
+    	this.isAccepted = false;
+    	
     	insertIntoCollection();
 		
 	}
 	
+	/**
+	 * Creates a new <code>Request</code> with a unique _id field, with the specified
+	 * <code>Patient</code>, <code>Therapist</code, and summary. After creation, the 
+	 * <code>Chat</code> is inserted into the <code>chats</code> collection.
+	 *  
+	 * @param patient   the patient sending this request
+	 * @param therapist the therapist receiving this request
+	 * @param database  the database this request belongs to
+	 */
+	public Request(Patient patient, Therapist therapist, String summary, MongoDatabase database) {
+		
+		MongoCollection<Document> collection = database.getCollection("requests");
+		
+		ObjectId patientId = patient.getId();
+    	ObjectId therapistId = therapist.getId();
+    	Document requestDoc = collection.find(
+    			and(
+    					eq("patient_id", patientId), eq("therapist_id", therapistId)
+    			)).first();
+    	
+    	ObjectId id = null;
+    	
+    	if(requestDoc == null) {
+    		id = requestDoc.getObjectId("_id");
+    	} else {
+    		throw new IllegalStateException("This constructor is only for Requests that"
+    				+ "have not been created in the database yet");
+    	}
+    	
+    	this.id = id;
+    	this.database = database;
+    	
+    	this.patient = patient;
+    	this.therapist = therapist;
+    	
+    	this.isAccepted = false;
+    	this.summary = summary;
+    	
+    	insertIntoCollection();
+		
+	}
     
     /**
      * 

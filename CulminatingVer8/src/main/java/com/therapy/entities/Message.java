@@ -9,6 +9,7 @@ import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 
 import java.util.Random;
@@ -51,31 +52,26 @@ public class Message extends Entity{
      * @param therapist the therapist using this chat
      * @param database  the database this chat belongs to
      */
-    public Message(Patient patient, Therapist therapist, Boolean senderIsPatient, MongoDatabase database) {
+    public Message(Patient patient, Therapist therapist, Boolean senderIsPatient, String content,
+    		MongoDatabase database) {
     	
     	MongoCollection<Document> collection = database.getCollection("messages");
     	
-    	ObjectId id = null; 
+    	ObjectId patientId = patient.getId();
+    	ObjectId therapistId = therapist.getId();
+    	Document messageDoc = collection.find(
+    			and(
+    					eq("patient_id", patientId), eq("therapist_id", therapistId)
+    			)).first();
     	
-    	boolean duplicateKey;
+    	ObjectId id = null;
     	
-    	do {
-    		
-    		duplicateKey = false;
-    		
-    		String random = Integer.valueOf(new Random().nextInt()).toString();
-        	byte[] possibleIdAsBytes = (patient.getEmail() + "P" + therapist.getEmail() + "T" + random).getBytes();
-        	
-        	id = new ObjectId(possibleIdAsBytes);
-        	
-        	try {
-        		collection.insertOne(new Document("_id", id));
-        	} catch(MongoWriteException e) {
-        		if(e.getCode() == 11000)
-        		duplicateKey = true;
-        	}
-        	
-    	} while(duplicateKey);
+    	if(messageDoc == null) {
+    		id = messageDoc.getObjectId("_id");
+    	} else {
+    		throw new IllegalStateException("This constructor is only for Messages that"
+    				+ "have not been created in the database yet");
+    	}
     	
     	this.id = id;
     	this.database = database;
@@ -83,10 +79,8 @@ public class Message extends Entity{
     	this.patient = patient;
     	this.therapist = therapist;
     	
-    	Document doc = collection.find(eq(id)).first();
-    	
     	this.senderIsPatient = senderIsPatient;
-        content = doc.getString("content");
+        this.content = content;
         
         insertIntoCollection();
     	
