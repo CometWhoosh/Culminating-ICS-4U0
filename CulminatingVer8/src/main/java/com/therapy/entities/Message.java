@@ -63,7 +63,7 @@ public class Message extends Entity{
     		
     		duplicateKey = false;
     		
-    		String random = new Integer(new Random().nextInt()).toString();
+    		String random = Integer.valueOf(new Random().nextInt()).toString();
         	byte[] possibleIdAsBytes = (patient.getEmail() + "P" + therapist.getEmail() + "T" + random).getBytes();
         	
         	id = new ObjectId(possibleIdAsBytes);

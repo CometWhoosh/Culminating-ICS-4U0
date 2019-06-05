@@ -38,12 +38,12 @@ public class Chat extends Entity{
     private Deque<Message> messages = new ArrayDeque<Message>();
     
     /**
-     * Creates a new <code>Chat</code> with it's messages being created by reading
-     * them in from the database.
+     * Creates a new <code>Chat</code>, where the messages are read in from the database
+	 * using the given _id MonogoDB field.
      * 
      * @param patient   the patient using this chat
      * @param therapist the therapist using this chat
-     * @param id        the _id field that this chat will use
+     * @param id        the _id field that this MongoDB will use
      * @param database  the database this chat belongs to
      */
     public Chat(Patient patient, Therapist therapist, ObjectId id, MongoDatabase database) {
@@ -89,7 +89,7 @@ public class Chat extends Entity{
     		
     		duplicateKey = false;
     		
-    		String random = new Integer(new Random().nextInt()).toString();
+    		String random = Integer.valueOf(new Random().nextInt()).toString();
         	byte[] possibleIdAsBytes = (patient.getEmail() + "P" + therapist.getEmail() + "T" + random).getBytes();
         	
         	id = new ObjectId(possibleIdAsBytes);
@@ -108,7 +108,6 @@ public class Chat extends Entity{
     	
     	this.patient = patient;
     	this.therapist = therapist;
-    	Document chatDoc = collection.find(eq(id)).first();
     	
     	insertIntoCollection();
     	

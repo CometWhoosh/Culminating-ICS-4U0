@@ -27,9 +27,6 @@ public abstract class User extends Entity{
     protected byte[] hashedPassword;
     protected byte[] salt;
     
-    
-    
-    
     public User(ObjectId id, MongoDatabase database) {
 		super(id, database);
     }

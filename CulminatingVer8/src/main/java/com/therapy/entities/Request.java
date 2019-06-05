@@ -2,6 +2,8 @@ package com.therapy.entities;
 
 import static com.mongodb.client.model.Filters.eq;
 
+import java.util.Random;
+
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -28,7 +30,16 @@ public class Request extends Entity{
 	boolean isAccepted;
 	String summary;
 	
-	
+	/**
+	 * Creates a new <code>Request</code> with a specified <code>Patient</code> and
+	 * <code>Therapist</code>, where the other fields are read in from the database
+	 * using the given _id MonogoDB field.
+	 * 
+	 * @param patient   the patient sending this request
+	 * @param therapist the therapist receiving this request
+	 * @param id        the _id field that MongoDB will use
+	 * @param database  the database this request belongs to
+	 */
 	public Request(Patient patient, Therapist therapist, ObjectId id, MongoDatabase database) {
 	    	
 	    	super(id, database);
@@ -45,6 +56,50 @@ public class Request extends Entity{
     	
     }
 	
+	/**
+	 * Creates a new <code>Request</code> with a unique _id field, witht the specified
+	 * <code>Patient</code> and <code>Therapist</code>. After creation, the 
+	 * <code>Chat</code> is inserted into the <code>chats</code> collection.
+	 *  
+	 * @param patient   the patient sending this request
+	 * @param therapist the therapist receiving this request
+	 * @param database  the database this request belongs to
+	 */
+	public Request(Patient patient, Therapist therapist, MongoDatabase database) {
+		
+		MongoCollection<Document> collection = database.getCollection("requests");
+		
+		ObjectId id = null; 
+    	
+    	boolean duplicateKey;
+    	
+    	do {
+    		
+    		duplicateKey = false;
+    		
+    		String random = Integer.valueOf(new Random().nextInt()).toString();
+        	byte[] possibleIdAsBytes = (patient.getEmail() + "P" + therapist.getEmail() + "T" + random).getBytes();
+        	
+        	id = new ObjectId(possibleIdAsBytes);
+        	
+        	try {
+        		collection.insertOne(new Document("_id", id));
+        	} catch(MongoWriteException e) {
+        		if(e.getCode() == 11000)
+        		duplicateKey = true;
+        	}
+        	
+    	} while(duplicateKey);
+    	
+    	this.id = id;
+    	this.database = database;
+    	
+    	this.patient = patient;
+    	this.therapist = therapist;
+    	
+    	insertIntoCollection();
+		
+	}
 	
     
     /**

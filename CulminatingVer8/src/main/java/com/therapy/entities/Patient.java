@@ -85,6 +85,7 @@ public class Patient extends User {
     
     
     
+    
     /**
      * 
      * @return a <code>List</code> of the current requests.
