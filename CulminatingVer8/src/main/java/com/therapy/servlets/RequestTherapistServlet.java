@@ -1,5 +1,7 @@
 package com.therapy.servlets;
 
+import static com.mongodb.client.model.Filters.eq;
+
 import java.io.IOException;
 
 import javax.servlet.ServletException;
@@ -9,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.apache.commons.codec.binary.Hex;
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
@@ -18,8 +21,6 @@ import com.mongodb.client.MongoDatabase;
 import com.therapy.entities.Patient;
 import com.therapy.entities.Request;
 import com.therapy.entities.Therapist;
-
-import static com.mongodb.client.model.Filters.eq;
 
 @WebServlet("/requestTherapist")
 public class RequestTherapistServlet extends HttpServlet {
@@ -38,18 +39,42 @@ public class RequestTherapistServlet extends HttpServlet {
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
 		
-		MongoCollection<Document> therapistCollection = database.getCollection("therapists");
+		//MongoCollection<Document> therapistCollection = database.getCollection("therapists");
 		
-		HttpSession session = request.getSession();
+		HttpSession session = request.getSession(false);
+		System.out.println("ReqeuestServlet: " + session.getId());
+		////
+		//System.out.println(session.toString());
+		////
+		
+		//System.out.println(session.toString());
 		//System.out.println( new ObjectId((String)session.getAttribute("id")).toHexString() );
 		
-		String email = (String) session.getAttribute("email");
 		
-		MongoCollection<Document> patientCollection = database.getCollection("patients");
+	//	ObjectId id= null;
 		
-		Document patientDocument = patientCollection.find(eq("email", email)).first();
 		
-		ObjectId patientId = new ObjectId((String)session.getAttribute("id"));
+			//id = (ObjectId)session.getAttribute("id");
+	/*	try {
+			System.out.println(((String)session.getAttribute("email")));
+		} catch(NullPointerException e) {
+			System.out.println("Yeah Null P E");
+		} */
+		String emailHex = Hex.encodeHexString(((String)session.getAttribute("email")).getBytes());
+			
+			
+		
+		
+		//MongoCollection<Document> patientCollection = database.getCollection("patients");
+		//Document patientDocument = patientCollection.find(eq("email", email)).first();
+		
+		//System.out.println("RequestTherapistServlet, ObjectID");
+		//System.out.println(((ObjectId)session.getAttribute("id")).toString());
+		
+		//((ObjectId)randomTherapists[i].get("_id"))
+		
+		
+		ObjectId patientId = new ObjectId(emailHex);
 		ObjectId therapistId = new ObjectId(request.getParameter("therapist"));
 		String summary = request.getParameter("textarea");
 		

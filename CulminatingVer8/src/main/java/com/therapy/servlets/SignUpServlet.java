@@ -21,6 +21,7 @@ import javax.servlet.http.HttpSession;
 
 import org.bson.Document;
 import org.bson.types.Binary;
+import org.bson.types.ObjectId;
 
 import com.mongodb.MongoClient;
 import com.mongodb.MongoWriteException;
@@ -54,7 +55,6 @@ public class SignUpServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
-		
 		
 		//Get user input
 		String userType = request.getParameter("userType");
@@ -95,29 +95,44 @@ public class SignUpServlet extends HttpServlet {
 		if(collection.find(eq("email", email)).first() == null) {
 			
 			Map<String, Object> fields = new HashMap<String, Object>();
+			
 			fields.put("first_name", firstName);
 			fields.put("last_name", lastName);
 			fields.put("email", email);
 			fields.put("password_hash", new Binary(hash));
 			fields.put("salt", new Binary(salt));
-			/*
+			
+			boolean isDuplicate = false;
+			ObjectId id = null;
+			
+			do {
+				
+				isDuplicate = false;
+				id = ObjectId.get();
+				
+				fields.remove("_id");
+				fields.put("_id", id);
+				
+				try {
+					collection.insertOne(new Document("_id", id));
+				} catch(MongoWriteException e) {
+					if(e.getCode() == 11000) {
+						isDuplicate = true;
+					}
+				}
+				
+			} while(isDuplicate);
+				
 			HttpSession session = request.getSession();
-			session.setAttribute("email", email);
+			session.setAttribute("id", id);
 			session.setAttribute("user_type", userType);
-			*/
-			//send to next page
+			
+			//Checking the session id
+			System.out.println("SignUpServlet: " + session.getId());
 						
 			try {
-				
-				collection.insertOne(new Document(fields));
-				/*
-				HttpSession session = request.getSession();
-				session.setAttribute("id", collection.find(eq("email", email)).first().getObjectId("_id").toHexString());
-				session.setAttribute("user_type", userType);
-				*/
-				
+				collection.replaceOne(eq(id), new Document(fields));
 			} catch(MongoWriteException e) {
-				//write to user saying to try again
 				response.sendRedirect(projectPath + "/signUp.jsp?databaseError=1");
 			}
 			
@@ -130,12 +145,12 @@ public class SignUpServlet extends HttpServlet {
 			}
 			
 		} else {
+			
 			//Write back to user saying email is taken
 			response.sendRedirect(projectPath + "/signUp.jsp?emailError=1");
 			return;
+			
 		}
-		
-		
 		
 	}
 	

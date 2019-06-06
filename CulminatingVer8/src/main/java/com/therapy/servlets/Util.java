@@ -1,5 +1,7 @@
 package com.therapy.servlets;
 
+import java.math.BigInteger;
+
 import org.bson.Document;
 
 import com.mongodb.MongoClient;
@@ -84,6 +86,10 @@ public final class Util {
 		
 		return database.getCollection(collectionName);
 		
+	}
+	
+	public String toHex(String arg) {
+	    return String.format("%040x", new BigInteger(1, arg.getBytes()));
 	}
 	
 	

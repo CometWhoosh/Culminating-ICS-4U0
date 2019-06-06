@@ -80,6 +80,7 @@ public class Chat extends Entity{
      */
     public Chat(Patient patient, Therapist therapist, MongoDatabase database) {
     	
+    	//Check if a chat for these users already exists
     	MongoCollection<Document> collection = database.getCollection("chats");
     	
     	ObjectId patientId = patient.getId();
@@ -88,16 +89,31 @@ public class Chat extends Entity{
     			and(
     					eq("patient_id", patientId), eq("therapist_id", therapistId)
     			)).first();
-    	
-    	ObjectId id = null;
-    	
-    	if(chatDoc == null) {
-    		id = chatDoc.getObjectId("_id");
-    	} else {
+    	if(chatDoc != null) {
     		throw new IllegalStateException("This constructor is only for Chats that"
     				+ "have not been created in the database yet");
     	}
     	
+    	//create a new, unique _id for the chat
+    	boolean isDuplicate = false;
+		ObjectId id = null;
+		
+		do {
+			
+			isDuplicate = false;
+			id = ObjectId.get();
+			
+			try {
+				collection.insertOne(new Document("_id", id));
+			} catch(MongoWriteException e) {
+				if(e.getCode() == 11000) {
+					isDuplicate = true;
+				}
+			}
+			
+		} while(isDuplicate);
+		
+    	//Initialize the class fields
     	this.id = id;
     	this.database = database;
     	

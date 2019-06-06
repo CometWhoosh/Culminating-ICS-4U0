@@ -21,6 +21,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -38,7 +39,13 @@ public class GetTherapistsServlet extends HttpServlet {
 	@Override
 	public void doGet(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
-	
+		/*
+		 * This HttpSession is not actually used in this servlet. I only added it
+		 * in order to check if it's id was the same as the on in SignUpServlet.
+		 */
+		HttpSession session = request.getSession();
+		System.out.println("GetTherapistServlet: " + session.getId());
+		
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
 		

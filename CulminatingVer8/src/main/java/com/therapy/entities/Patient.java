@@ -75,6 +75,31 @@ public class Patient extends User {
     	
     }
     
+    public Patient(String email, MongoDatabase database) {
+    	
+    	//database.getCollection("patients").find(eq("email", email)).first().getObjectId("_id")
+    	super(new ObjectId(email),database);
+    	
+    	MongoCollection<Document> patientCollection = database.getCollection("patients");
+    	
+    	Document patientDoc = patientCollection.find(eq(id)).first();
+    	
+    	firstName = patientDoc.getString("first_name");
+    	lastName = patientDoc.getString("last_name");
+    	email = patientDoc.getString("email");
+    	hashedPassword = patientDoc.get("password_hash", Binary.class).getData();
+    	salt = patientDoc.get("salt", Binary.class).getData();
+    	
+    	ObjectId therapistId = patientDoc.getObjectId("therapist_id");
+    	therapist = new Therapist(therapistId, database);
+    	
+    	ObjectId chatId = patientDoc.getObjectId("chat");
+    	chat = new Chat(this, therapist, chatId, database);
+    	
+    	ObjectId requestId = patientDoc.getObjectId("request");
+    	request = new Request(this, therapist, requestId, database);
+    	
+    }
     
     
     
