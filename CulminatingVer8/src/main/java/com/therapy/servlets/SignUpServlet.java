@@ -12,6 +12,7 @@ import java.util.Map;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
+import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -40,7 +41,7 @@ import com.mongodb.client.MongoDatabase;
 public class SignUpServlet extends HttpServlet {
 
 	private static final String serverIpAddress = "192.168.56.1"; 
-	private static final String serverPort = "1024";
+	private static final String serverPort = "8080";
 	private static final String projectPath = "http://" + serverIpAddress + ":" + serverPort + "/CulminatingVer8";
 	
 	/**
@@ -122,22 +123,25 @@ public class SignUpServlet extends HttpServlet {
 				}
 				
 			} while(isDuplicate);
-				
-			HttpSession session = request.getSession();
-			session.setAttribute("id", id);
-			session.setAttribute("user_type", userType);
 			
-			//Checking the session id
-			System.out.println("SignUpServlet: " + session.getId());
-						
 			try {
 				collection.replaceOne(eq(id), new Document(fields));
 			} catch(MongoWriteException e) {
 				response.sendRedirect(projectPath + "/signUp.jsp?databaseError=1");
 			}
 			
+			HttpSession session = request.getSession();
+			session.setAttribute("id", id);
+			session.setAttribute("user_type", userType);
+			session.setMaxInactiveInterval(-1);
+			
+			//Checking the session id
+			System.out.println("SignUpServlet: " + session.getId());
+			System.out.println("SignUpServlet - ID: " + id.toHexString());
+			
 			if(userType.equals("Patient")) {
-				response.sendRedirect(projectPath + "/getTherapists");
+				request.getRequestDispatcher("/getTherapists").forward(request, response);
+				//response.sendRedirect(projectPath + "/getTherapists");
 				return;
 			} else {
 				response.sendRedirect(projectPath + "/therapistHomepage.html");

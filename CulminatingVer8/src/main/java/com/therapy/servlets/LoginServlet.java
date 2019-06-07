@@ -36,7 +36,7 @@ import com.mongodb.client.MongoDatabase;
 public class LoginServlet extends HttpServlet {
 
 	private static final String serverIpAddress = "192.168.56.1"; 
-	private static final String serverPort = "1024";
+	private static final String serverPort = "8080";
 	private static final String projectPath = "http://" + serverIpAddress + ":" + serverPort + "/CulminatingVer8";
 	
 	/**
@@ -64,13 +64,12 @@ public class LoginServlet extends HttpServlet {
 		MongoCollection<Document> collection = Util.getUserAppropriateCollection(database, userType);
 		
 		Document userDoc = null;
-		Document resultDoc;
 		byte[] salt = null;
 		byte[] hashedPassword = null;
-		if( (resultDoc = collection.find(eq("email", email)).first()) != null) {
+		if( (userDoc = collection.find(eq("email", email)).first()) != null) {
 			
-			salt = resultDoc.get("salt", Binary.class).getData();
-			hashedPassword = resultDoc.get("password_hash", Binary.class).getData();
+			salt = userDoc.get("salt", Binary.class).getData();
+			hashedPassword = userDoc.get("password_hash", Binary.class).getData();
 			
 		} else {
 			
@@ -104,9 +103,11 @@ public class LoginServlet extends HttpServlet {
 		
 		//check if password matches
 		if(Arrays.equals(hash, hashedPassword)) {
+			
 			HttpSession session = request.getSession();
-			session.setAttribute("email", email);
+			session.setAttribute("id", userDoc.getObjectId("_id"));
 			session.setAttribute("user_type", userType);
+			session.setMaxInactiveInterval(-1);
 			
 			if(userType.equals("patient")) {
 				

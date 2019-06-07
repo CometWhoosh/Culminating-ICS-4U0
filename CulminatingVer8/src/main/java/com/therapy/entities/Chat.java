@@ -5,6 +5,7 @@ import static com.mongodb.client.model.Filters.*;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
@@ -52,6 +53,7 @@ public class Chat extends Entity{
     	
     	this.patient = patient;
     	this.therapist = therapist;
+    	collection = database.getCollection("chats");
     	
     	MongoCollection<Document> collection = database.getCollection("chats");
     	
@@ -78,7 +80,7 @@ public class Chat extends Entity{
      * @param therapist the therapist using this chat
      * @param database  the database this chat belongs to
      */
-    public Chat(Patient patient, Therapist therapist, MongoDatabase database) {
+    public Chat(Patient patient, Therapist therapist, MongoDatabase database) throws IllegalStateException {
     	
     	//Check if a chat for these users already exists
     	MongoCollection<Document> collection = database.getCollection("chats");
@@ -108,19 +110,22 @@ public class Chat extends Entity{
 			} catch(MongoWriteException e) {
 				if(e.getCode() == 11000) {
 					isDuplicate = true;
+				} else {
+					throw e;
 				}
 			}
 			
 		} while(isDuplicate);
 		
-    	//Initialize the class fields
+    	//initialize the class fields
     	this.id = id;
     	this.database = database;
+    	collection = database.getCollection("chats");
     	
     	this.patient = patient;
     	this.therapist = therapist;
     	
-    	insertIntoCollection();
+    	replaceInCollection();
     	
     }
     
@@ -132,7 +137,10 @@ public class Chat extends Entity{
      * @return the patient associated with this chat.
      */
     public Patient getPatient() {
+    	
+    	patient = new Patient(patient.getId(), database);
         return patient;
+        
     }
     
     /**
@@ -140,7 +148,10 @@ public class Chat extends Entity{
      * @return the therapist associated with this chat.
      */
     public Therapist getTherapist() {
+    	
+    	therapist = new Therapist(therapist.getId(), database);
         return therapist;
+        
     }
     
     /**
@@ -179,30 +190,54 @@ public class Chat extends Entity{
         
     }
     
-    /**
-     * 
-     * @param patient the patient to be associated with the chat.
-     */
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-    
-    /**
-     * 
-     * @param therapist the therapist to be associated with the chat.
-     */
-    public void setTherapist(Therapist therapist) {
-        this.therapist = therapist;
-    }
     
     /**
      * 
      * @param message the new message to be added to the chat.
      */
     public void addMessage(Message message) {
+    	
+    	//messages will never have their fields change so there is no reason
+        //to call replaceInCollection() on them
+    	
+    	//refresh messages
+    	//add message
+    	//update collection
+    	
+    	//refresh messages
+    	
+    	
+    	
+    	Document doc = getDocumentRepresentation();
+    	
+    	ArrayList<ObjectId> messageIdList = doc.get("message_ids", new ArrayList<ObjectId>().getClass());
+    	ObjectId[] messageIds = messageIdList.toArray(ObjectId[]::new);
+    	
+    	List<Message> messagesAsList = new ArrayList(Arrays.asList((Message[]) messages.toArray()));
+    	
+    	//check for new messages
+    	int size = messagesAsList.size();
+    	for(int i = 0; i < 50; i++) {
+    		
+    		/*
+    		Message messageInList = new Message(patient, therapist, messageId, database);
+    		messages.add(messageInList);
+    		*/
+    		
+    		//this is where you should insert your new messages
+    		if(messagesAsList.get(size - (50 - i) - 1) != meesageIdList[]
+    		
+    	}
+    	
+    	
         messages.add(message);
+        
+        messageIdList.add(message.getId());
+        collection.findOneAndUpdate(eq(id), Updates.pushEach("messageIds", messageIdList));
+        
     }
     
+    /*
     public void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("chats");
@@ -221,8 +256,9 @@ public class Chat extends Entity{
     	collection.findOneAndUpdate( eq(id), Updates.pushEach("messageIds", messageIds));
     			
     }
+    */
     
-    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public void replaceInCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("chats");
     	
@@ -236,7 +272,7 @@ public class Chat extends Entity{
     	
     	try {
     		
-    		collection.updateOne(eq(id), doc);
+    		collection.replaceOne(eq(id), doc);
     		collection.findOneAndUpdate( eq(id), Updates.pushEach("message_ids", messageIds));
     		
     	} catch(MongoWriteException e) {
@@ -248,5 +284,6 @@ public class Chat extends Entity{
     	}
     	
     }
+    
 	
 }

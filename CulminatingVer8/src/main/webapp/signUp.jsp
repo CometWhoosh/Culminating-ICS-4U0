@@ -3,9 +3,10 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <!DOCTYPE html>
 <html>
-<header>
-	
-</header>
+<head>
+	<meta charset="ISO-8859-1">
+	<title>Sign Up</title>
+</head>
 <body>
 
 	<h1>Sign Up</h1>

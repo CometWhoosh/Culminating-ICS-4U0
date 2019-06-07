@@ -37,13 +37,13 @@ import com.mongodb.client.MongoDatabase;
 public class GetTherapistsServlet extends HttpServlet {
 
 	@Override
-	public void doGet(HttpServletRequest request, 
+	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		/*
 		 * This HttpSession is not actually used in this servlet. I only added it
 		 * in order to check if it's id was the same as the on in SignUpServlet.
 		 */
-		HttpSession session = request.getSession();
+		HttpSession session = request.getSession(false);
 		System.out.println("GetTherapistServlet: " + session.getId());
 		
 		MongoClient mongoClient = Util.getMongoClient();

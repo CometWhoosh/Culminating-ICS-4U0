@@ -48,11 +48,11 @@ public class Therapist extends User {
     	
     	super(id,database);
     	
-    	MongoCollection<Document> therapistCollection = database.getCollection("therapists");
+    	collection = database.getCollection("therapists");
     	
-    	Document therapistDoc = therapistCollection.find(eq(id)).first();
+    	Document therapistDoc = collection.find(eq(id)).first();
     	
-    	firstName = therapistDoc.getString("first_name");
+    	firstName = therapistDoc.getString("first_name"); 
     	lastName = therapistDoc.getString("last_name");
     	email = therapistDoc.getString("email");
     	hashedPassword = therapistDoc.get("password_hash", Binary.class).getData();
@@ -65,50 +65,73 @@ public class Therapist extends User {
     	rating = therapistDoc.getInteger("rating");
     	numberOfRaters = therapistDoc.getInteger("number_of_raters");
     	
+    	
     	//Initialize <code>patients</code> and <code>chats</code>
     	ArrayList<ObjectId> patientIdList = therapistDoc.get("patient_ids", new ArrayList<ObjectId>().getClass());
-    	ObjectId[] patientIds = patientIdList.toArray(ObjectId[]::new);
+    	ObjectId[] patientIds = null;
+    	if(patientIdList != null) {
+    		patientIds = patientIdList.toArray(ObjectId[]::new);
+    	}
+    	
     	
     	MongoCollection<Document> chatCollection = database.getCollection("chats");
     	ArrayList<ObjectId> chatIdList = therapistDoc.get("chat_ids", new ArrayList<ObjectId>().getClass());
-    	ObjectId[] chatIds = chatIdList.toArray(ObjectId[]::new);
+    	ObjectId[] chatIds = null;
+    	if(chatIdList != null) {
+    		chatIds = chatIdList.toArray(ObjectId[]::new);
+    	}
     	
-    	for(int i = 0 ; i < patientIds.length; i++) {
+    	
+    	if(patientIds != null && chatIds != null) {
     		
-    		Patient patient = new Patient(patientIds[i], this, database);
-    		patients.add(patient);
-    		
-    		Document chatDoc = chatCollection.find(eq(chatIds[i])).first();
-    		Chat chat = new Chat(patient, this, chatIds[i], database);
-    		chats.add(chat);
+    		for(int i = 0 ; i < patientIds.length; i++) {
+        		
+        		Patient patient = new Patient(patientIds[i], this, database);
+        		patients.add(patient);
+        		
+        		Document chatDoc = chatCollection.find(eq(chatIds[i])).first();
+        		Chat chat = new Chat(patient, this, chatIds[i], database);
+        		chats.add(chat);
+        		
+        	}
     		
     	}
+    	
     	
     	
     	ArrayList<ObjectId> requestIdList = therapistDoc.get("request_ids", new ArrayList<ObjectId>().getClass());
-    	ObjectId[] requestIds = requestIdList.toArray(ObjectId[]::new);
+    	ObjectId[] requestIds = null;
+    	if(requestIdList != null) {
+    		requestIds = requestIdList.toArray(ObjectId[]::new);
+    	}
     	
     	MongoCollection<Document> requestCollection = database.getCollection("requests");
     	
-    	for(int i = 0; i < requestIds.length; i++) {
+    	if(requestIds != null) {
     		
-    		Document requestDoc = requestCollection.find(eq(requestIds[i])).first();
-    		
-    		Patient patient = new Patient(requestDoc.getObjectId("patient_id"), this, database);
-    		Request request = new Request(patient, this, requestIds[i], database);
-    		requests.add(request);
+    		for(int i = 0; i < requestIds.length; i++) {
+        		
+        		Document requestDoc = requestCollection.find(eq(requestIds[i])).first();
+        		
+        		Patient patient = new Patient(requestDoc.getObjectId("patient_id"), this, database);
+        		Request request = new Request(patient, this, requestIds[i], database);
+        		requests.add(request);
+        		
+        	}
     		
     	}
     	
+    	
     }
     
+    //Is this necessary?
 	public Therapist(ObjectId id, List<Patient> patients, MongoDatabase database) {
 	    	
 	    	super(id,database);
 	    	
-	    	MongoCollection<Document> therapistCollection = database.getCollection("therapists");
+	    	collection = database.getCollection("therapists");
 	    	
-	    	Document therapistDoc = therapistCollection.find(eq(id)).first();
+	    	Document therapistDoc = collection.find(eq(id)).first();
 	    	
 	    	firstName = therapistDoc.getString("first_name");
 	    	lastName = therapistDoc.getString("last_name");
@@ -203,6 +226,7 @@ public class Therapist extends User {
     	return canReceiveRequests;
     }
     
+    
     /**
      * 
      * @param limit the maximum amount of requests a therapist can receive.
@@ -261,6 +285,7 @@ public class Therapist extends User {
     	requestLimit = patientLimit - requests.size() - patients.size();
     }
     
+    /*
     public void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("therapists");
@@ -296,50 +321,7 @@ public class Therapist extends User {
     	
     }
     
-    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
-    	
-    	MongoCollection<Document> collection = database.getCollection("therapists");
-    	
-    	//get <code>patients</code> as a List
-    	List<ObjectId> patientIds = patients.stream()
-    			.map(e -> e.getId())
-				.collect(Collectors.toList());
-    	
-    	//get <code>requests</code> as a List
-    	List<ObjectId> requestIds = requests.stream()
-    			.map(e -> e.getId())
-				.collect(Collectors.toList());
-    	
-    	//get <code>chats</code> as a List
-    	List<ObjectId> chatIds = chats.stream()
-    			.map(e -> e.getId())
-				.collect(Collectors.toList());
-    	
-    	Document doc = getDocument(collection)
-    			.append("number_of_requests", numberOfRequests)
-    			.append("can_receive_requests", canReceiveRequests)
-    			.append("request_limit", requestLimit)
-    			.append("patient_limit", patientLimit)
-    			.append("rating", rating)
-    			.append("number_of_raters", numberOfRaters);
-    	
-    	try {
-    		
-    		collection.updateOne(eq(id), doc);
-    		collection.findOneAndUpdate( eq(id), Updates.pushEach("message_ids", patientIds));
-    		collection.findOneAndUpdate( eq(id), Updates.pushEach("message_ids", requestIds));
-    		collection.findOneAndUpdate( eq(id), Updates.pushEach("message_ids", chatIds));
-    		
-    	} catch(MongoWriteException e) {
-    		throw e;
-    	} catch(MongoWriteConcernException e) {
-    		throw e;
-    	} catch(MongoException e) {
-    		throw e;
-    	}
-    	
-    	
-    }
+    */
     
     
 	

@@ -48,7 +48,7 @@ public class Request extends Entity{
 	    	this.patient = patient;
 	    	this.therapist = therapist;
 	    	
-	    	MongoCollection<Document> collection = database.getCollection("requests");
+	    	collection = database.getCollection("requests");
 	    	Document doc = collection.find(eq(id)).first();
 	    	
 	    	isAccepted = doc.getBoolean("is_accepted", false);
@@ -66,9 +66,11 @@ public class Request extends Entity{
 	 * @param therapist the therapist receiving this request
 	 * @param database  the database this request belongs to
 	 */
-	public Request(Patient patient, Therapist therapist, MongoDatabase database) {
+	public Request(Patient patient, Therapist therapist, MongoDatabase database) 
+			throws IllegalStateException {
 		
-		MongoCollection<Document> collection = database.getCollection("requests");
+		//Check if a request for these users already exists
+		collection = database.getCollection("requests");
 		
 		ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
@@ -77,15 +79,33 @@ public class Request extends Entity{
     					eq("patient_id", patientId), eq("therapist_id", therapistId)
     			)).first();
     	
-    	ObjectId id = null;
-    	
-    	if(requestDoc == null) {
-    		id = requestDoc.getObjectId("_id");
-    	} else {
+    	if(requestDoc != null) {
     		throw new IllegalStateException("This constructor is only for Requests that"
     				+ "have not been created in the database yet");
     	}
     	
+    	//create a new, unique _id for the request
+    	boolean isDuplicate = false;
+		ObjectId id = null;
+		
+		do {
+			
+			isDuplicate = false;
+			id = ObjectId.get();
+			
+			try {
+				collection.insertOne(new Document("_id", id));
+			} catch(MongoWriteException e) {
+				if(e.getCode() == 11000) {
+					isDuplicate = true;
+				} else {
+					throw e;
+				}
+			}
+			
+		} while(isDuplicate);
+    	
+		//initialize the class fields
     	this.id = id;
     	this.database = database;
     	
@@ -94,7 +114,7 @@ public class Request extends Entity{
     	
     	this.isAccepted = false;
     	
-    	insertIntoCollection();
+    	replaceInCollection();
 		
 	}
 	
@@ -107,9 +127,10 @@ public class Request extends Entity{
 	 * @param therapist the therapist receiving this request
 	 * @param database  the database this request belongs to
 	 */
-	public Request(Patient patient, Therapist therapist, String summary, MongoDatabase database) {
+	public Request(Patient patient, Therapist therapist, String summary, MongoDatabase database) 
+			throws IllegalStateException {
 		
-		MongoCollection<Document> collection = database.getCollection("requests");
+		collection = database.getCollection("requests");
 		
 		ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
@@ -118,14 +139,31 @@ public class Request extends Entity{
     					eq("patient_id", patientId), eq("therapist_id", therapistId)
     			)).first();
     	
-    	ObjectId id = null;
-    	
-    	if(requestDoc == null) {
-    		id = requestDoc.getObjectId("_id");
-    	} else {
+    	if(requestDoc != null) {
     		throw new IllegalStateException("This constructor is only for Requests that"
     				+ "have not been created in the database yet");
     	}
+    	
+    	//create a new, unique _id for the request
+    	boolean isDuplicate = false;
+		ObjectId id = null;
+		
+		do {
+			
+			isDuplicate = false;
+			id = ObjectId.get();
+			
+			try {
+				collection.insertOne(new Document("_id", id));
+			} catch(MongoWriteException e) {
+				if(e.getCode() == 11000) {
+					isDuplicate = true;
+				} else {
+					throw e;
+				}
+			}
+			
+		} while(isDuplicate);
     	
     	this.id = id;
     	this.database = database;
@@ -136,7 +174,7 @@ public class Request extends Entity{
     	this.isAccepted = false;
     	this.summary = summary;
     	
-    	insertIntoCollection();
+    	replaceInCollection();
 		
 	}
     
@@ -223,7 +261,7 @@ public class Request extends Entity{
     	
     }
     
-    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public void replaceInCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("requests");
     	
@@ -233,7 +271,7 @@ public class Request extends Entity{
     			.append("is_accepted", isAccepted)
     			.append("summary", summary);
     	
-    	collection.findOneAndUpdate(eq(id), doc);
+    	collection.replaceOne(eq(id), doc);
     	
     }
     

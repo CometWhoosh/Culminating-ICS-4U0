@@ -9,6 +9,7 @@ import com.mongodb.MongoWriteConcernException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Updates;
 
 import static com.mongodb.client.model.Filters.eq;
 
@@ -30,9 +31,9 @@ public class Patient extends User {
     	
     	super(id,database);
     	
-    	MongoCollection<Document> patientCollection = database.getCollection("patients");
+    	collection = database.getCollection("patients");
     	
-    	Document patientDoc = patientCollection.find(eq(id)).first();
+    	Document patientDoc = collection.find(eq(id)).first();
     	
     	firstName = patientDoc.getString("first_name");
     	lastName = patientDoc.getString("last_name");
@@ -41,13 +42,22 @@ public class Patient extends User {
     	salt = patientDoc.get("salt", Binary.class).getData();
     	
     	ObjectId therapistId = patientDoc.getObjectId("therapist_id");
-    	therapist = new Therapist(therapistId, database);
+    	if(therapistId != null) {
+    		therapist = new Therapist(therapistId, database);
+    	}
+    	
     	
     	ObjectId chatId = patientDoc.getObjectId("chat");
-    	chat = new Chat(this, therapist, chatId, database);
+    	if(chatId != null) {
+    		chat = new Chat(this, therapist, chatId, database);
+    	}
+    	
     	
     	ObjectId requestId = patientDoc.getObjectId("request");
-    	request = new Request(this, therapist, requestId, database);
+    	if(requestId != null) {
+    		request = new Request(this, therapist, requestId, database);
+    	}
+    	
     	
     }
     
@@ -55,9 +65,9 @@ public class Patient extends User {
     	
     	super(id,database);
     	
-    	MongoCollection<Document> patientCollection = database.getCollection("patients");
+    	collection = database.getCollection("patients");
     	
-    	Document patientDoc = patientCollection.find(eq(id)).first();
+    	Document patientDoc = collection.find(eq(id)).first();
     	
     	firstName = patientDoc.getString("first_name");
     	lastName = patientDoc.getString("last_name");
@@ -108,11 +118,35 @@ public class Patient extends User {
      * @return a <code>List</code> of the current requests.
      */
     public Request getRequest() {
+    	
+    	if(request == null) {
+    		return null;
+    	}
+    	
+    	request = new Request(this, request.getTherapist(), request.getId(), database);
         return request;
+        
     }
     
     public Therapist getTherapist() {
+    	
+    	if(therapist == null) {
+    		return null;
+    	}
+    	
+    	therapist = new Therapist(therapist.getId(), database);
     	return therapist;
+    	
+    }
+    
+    public Chat getChat() {
+    	
+    	if(chat == null) {
+    		return null;
+    	}
+    	chat = new Chat(this, chat.getTherapist(), database);
+    	return chat;
+    	
     }
     
     /**
@@ -121,16 +155,29 @@ public class Patient extends User {
      *        <code>List</code>
      */
     public void setRequest(Request request) {
+    	
         this.request = request;
+    	collection.findOneAndUpdate(eq(id), Updates.set("request_id", request.getId()));
+        
     }
     
     public void setTherapist(Therapist therapist) {
+    	
     	this.therapist = therapist;
+    	collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
+    	
     }
     
-    public void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    public void setChat(Chat chat) {
     	
-    	MongoCollection<Document> collection = database.getCollection("patients");
+    	this.chat = chat;
+    	collection.findOneAndUpdate(eq(id), Updates.set("chat_id", chat.getId()));
+    	
+    }
+    
+    //Useless. If you will use it, refresh everything at the beginning of the method
+    /*
+    public void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	Document doc = getDocument(collection)
     			.append("request_id", request.getId())
@@ -140,19 +187,7 @@ public class Patient extends User {
     	collection.insertOne(doc);
     	
     }
-    
-    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
-    	
-    	MongoCollection<Document> collection = database.getCollection("patients");
-    	
-    	Document doc = getDocument(collection)
-    			.append("request_id", request.getId())
-    			.append("therapist_id", therapist.getId())
-    			.append("chat_id", chat.getId());
-    	
-    	collection.findOneAndUpdate(eq(id), doc);
-    	
-    }
+    */
     
     
 

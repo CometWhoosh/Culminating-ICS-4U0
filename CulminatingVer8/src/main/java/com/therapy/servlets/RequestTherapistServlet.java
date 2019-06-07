@@ -39,46 +39,13 @@ public class RequestTherapistServlet extends HttpServlet {
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
 		
-		//MongoCollection<Document> therapistCollection = database.getCollection("therapists");
-		
 		HttpSession session = request.getSession(false);
 		System.out.println("ReqeuestServlet: " + session.getId());
-		////
-		//System.out.println(session.toString());
-		////
-		
-		//System.out.println(session.toString());
-		//System.out.println( new ObjectId((String)session.getAttribute("id")).toHexString() );
 		
 		
-	//	ObjectId id= null;
-		
-		
-			//id = (ObjectId)session.getAttribute("id");
-	/*	try {
-			System.out.println(((String)session.getAttribute("email")));
-		} catch(NullPointerException e) {
-			System.out.println("Yeah Null P E");
-		} */
-		String emailHex = Hex.encodeHexString(((String)session.getAttribute("email")).getBytes());
-			
-			
-		
-		
-		//MongoCollection<Document> patientCollection = database.getCollection("patients");
-		//Document patientDocument = patientCollection.find(eq("email", email)).first();
-		
-		//System.out.println("RequestTherapistServlet, ObjectID");
-		//System.out.println(((ObjectId)session.getAttribute("id")).toString());
-		
-		//((ObjectId)randomTherapists[i].get("_id"))
-		
-		
-		ObjectId patientId = new ObjectId(emailHex);
+		ObjectId patientId = (ObjectId)session.getAttribute("id");
 		ObjectId therapistId = new ObjectId(request.getParameter("therapist"));
 		String summary = request.getParameter("textarea");
-		
-		//System.out.println(patientId.toHexString());
 		
 		Patient patient = new Patient(patientId, database);
 		Therapist therapist = new Therapist(therapistId, database);
@@ -91,10 +58,10 @@ public class RequestTherapistServlet extends HttpServlet {
 		}
 		
 		therapist.addRequest(patientRequest);
-		therapist.updateToCollection();
+		therapist.replaceInCollection();
 		
 		patient.setRequest(patientRequest);
-		patient.updateToCollection();
+		patient.replaceInCollection();
 		
 		{
 			

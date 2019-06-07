@@ -23,6 +23,7 @@ import java.util.Random;
  */
 public class Message extends Entity{
 	
+	//senderIsPatient should probably be a final boolean, not Boolean
 	String content;
 	Boolean senderIsPatient;
     Patient patient;
@@ -35,7 +36,7 @@ public class Message extends Entity{
     	this.patient = patient;
     	this.therapist = therapist;
     	
-    	MongoCollection<Document> collection = database.getCollection("messages");
+    	collection = database.getCollection("messages");
     	Document doc = collection.find(eq(id)).first();
     	
     	senderIsPatient = doc.getBoolean("sender_is_patient").booleanValue();
@@ -53,9 +54,10 @@ public class Message extends Entity{
      * @param database  the database this chat belongs to
      */
     public Message(Patient patient, Therapist therapist, Boolean senderIsPatient, String content,
-    		MongoDatabase database) {
+    		MongoDatabase database) throws IllegalStateException {
     	
-    	MongoCollection<Document> collection = database.getCollection("messages");
+    	//Check if a message for these users already exists
+    	collection = database.getCollection("messages");
     	
     	ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
@@ -64,15 +66,34 @@ public class Message extends Entity{
     					eq("patient_id", patientId), eq("therapist_id", therapistId)
     			)).first();
     	
-    	ObjectId id = null;
-    	
-    	if(messageDoc == null) {
-    		id = messageDoc.getObjectId("_id");
-    	} else {
+    	if(messageDoc != null) {
     		throw new IllegalStateException("This constructor is only for Messages that"
     				+ "have not been created in the database yet");
     	}
     	
+    	//create a new, unique _id for the message
+    	boolean isDuplicate = false;
+		ObjectId id = null;
+		
+		do {
+			
+			isDuplicate = false;
+			id = ObjectId.get();
+			
+			try {
+				collection.insertOne(new Document("_id", id));
+			} catch(MongoWriteException e) {
+				if(e.getCode() == 11000) {
+					isDuplicate = true;
+				} else {
+					throw e;
+				}
+			}
+			
+		} while(isDuplicate);
+    	
+		
+		//initialize the class fields
     	this.id = id;
     	this.database = database;
     	
@@ -82,7 +103,7 @@ public class Message extends Entity{
     	this.senderIsPatient = senderIsPatient;
         this.content = content;
         
-        insertIntoCollection();
+        replaceInCollection();
     	
     }
     
@@ -133,7 +154,9 @@ public class Message extends Entity{
     	
     }
     
-    public void updateToCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
+    //Consider just adding this to the constructor and then making this empty, 
+    //since a Message's fields will never change
+    public void replaceInCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
     	
     	MongoCollection<Document> collection = database.getCollection("messages");
     	
@@ -150,7 +173,7 @@ public class Message extends Entity{
     			.append("patient_id", patient.getId())
     			.append("therapist_id", therapist.getId());
     	
-    	collection.findOneAndUpdate(eq(id), doc);
+    	collection.replaceOne(eq(id), doc);
     	
     }
 	

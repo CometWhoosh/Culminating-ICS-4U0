@@ -1,5 +1,7 @@
 package com.therapy.entities;
 
+import static com.mongodb.client.model.Filters.eq;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +50,9 @@ public abstract class User extends Entity{
         return lastName;
     }
     
-    
+    public String getFullName() {
+    	return firstName + " " + lastName;
+    }
     /**
      * 
      * @return the user's email.
@@ -121,7 +125,7 @@ public abstract class User extends Entity{
     	this.salt = salt;
     }
     
-    protected Document getDocument(MongoCollection<Document> collection) {
+    public void replaceInCollection() {
     	
     	Document doc = new Document("_id", id)
     			.append("first_name", firstName)
@@ -130,7 +134,7 @@ public abstract class User extends Entity{
     			.append("hashed_password", new Binary(hashedPassword))
     			.append("salt", new Binary(salt));
     	
-    	return doc;
+    	collection.replaceOne(eq(id), doc);
     	
     }
     
