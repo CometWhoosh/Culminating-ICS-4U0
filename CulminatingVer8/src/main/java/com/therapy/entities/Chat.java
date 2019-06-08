@@ -6,13 +6,10 @@ import static com.mongodb.client.model.Filters.*;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Random;
-import java.util.stream.Collectors;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -33,42 +30,7 @@ import com.mongodb.client.model.Updates;
  * 
  */
 public class Chat extends Entity{
-	 
-    private Patient patient;
-    private Therapist therapist;
-    private Deque<Message> messages = new ArrayDeque<Message>();
     
-    /**
-     * Creates a new <code>Chat</code>, where the messages are read in from the database
-	 * using the given _id MonogoDB field.
-     * 
-     * @param patient   the patient using this chat
-     * @param therapist the therapist using this chat
-     * @param id        the _id field that this MongoDB will use
-     * @param database  the database this chat belongs to
-     */
-    public Chat(Patient patient, Therapist therapist, ObjectId id, MongoDatabase database) {
-    	
-    	super(id, database);
-    	
-    	this.patient = patient;
-    	this.therapist = therapist;
-    	collection = database.getCollection("chats");
-    	
-    	MongoCollection<Document> collection = database.getCollection("chats");
-    	
-    	Document chatDoc = collection.find(eq(id)).first();
-    	
-    	ArrayList<ObjectId> messageIdList = chatDoc.get("message_ids", new ArrayList<ObjectId>().getClass());
-    	ObjectId[] messageIds = messageIdList.toArray(ObjectId[]::new);
-    	
-    	for(ObjectId messageId : messageIds) {
-    		
-    		Message message = new Message(patient, therapist, messageId, database);
-    		messages.add(message);
-    	}
-    	
-    }
     
     /**
      * Creates a new <code>Chat</code> with a unique _id field, and no messages. 
@@ -82,55 +44,37 @@ public class Chat extends Entity{
      */
     public Chat(Patient patient, Therapist therapist, MongoDatabase database) throws IllegalStateException {
     	
-    	//Check if a chat for these users already exists
-    	MongoCollection<Document> collection = database.getCollection("chats");
     	
+    	super(database);
+    	
+    	collection = database.getCollection("patients");
+    	
+    	//If there is already a <code>Chat</code> for these users, then throw <code>IllegalStateException</code>
     	ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
-    	Document chatDoc = collection.find(
+    	Document doc = collection.find(
     			and(
     					eq("patient_id", patientId), eq("therapist_id", therapistId)
     			)).first();
-    	if(chatDoc != null) {
+    	if(doc != null) {
     		throw new IllegalStateException("This constructor is only for Chats that"
     				+ "have not been created in the database yet");
     	}
     	
-    	//create a new, unique _id for the chat
-    	boolean isDuplicate = false;
-		ObjectId id = null;
-		
-		do {
-			
-			isDuplicate = false;
-			id = ObjectId.get();
-			
-			try {
-				collection.insertOne(new Document("_id", id));
-			} catch(MongoWriteException e) {
-				if(e.getCode() == 11000) {
-					isDuplicate = true;
-				} else {
-					throw e;
-				}
-			}
-			
-		} while(isDuplicate);
-		
-    	//initialize the class fields
-    	this.id = id;
+    	id = getUniqueId();
     	this.database = database;
-    	collection = database.getCollection("chats");
     	
-    	this.patient = patient;
-    	this.therapist = therapist;
-    	
-    	replaceInCollection();
+		collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
+		collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
     	
     }
     
-    
-    
+    public Chat(ObjectId id, MongoDatabase database) {
+    	
+    	super(id, database);
+    	collection = database.getCollection("chats");
+    	
+    }
     
     /**
      * 
@@ -138,9 +82,9 @@ public class Chat extends Entity{
      */
     public Patient getPatient() {
     	
-    	patient = new Patient(patient.getId(), database);
-        return patient;
-        
+    	ObjectId patientId = getDocument().getObjectId("patient_id");
+    	return new Patient(patientId, database);
+    	
     }
     
     /**
@@ -149,8 +93,8 @@ public class Chat extends Entity{
      */
     public Therapist getTherapist() {
     	
-    	therapist = new Therapist(therapist.getId(), database);
-        return therapist;
+    	ObjectId therapistId = getDocument().getObjectId("therapist_id");
+    	return new Therapist(therapistId, database);
         
     }
     
@@ -158,33 +102,43 @@ public class Chat extends Entity{
      * 
      * @return the <code>List</code> of messages that make up the chat.
      */
-    public Collection<Message> getMessages() {
-        return messages;
+    public Message[] getMessages() {
+    	
+    	Document doc = getDocument();
+    	
+    	ObjectId[] messageIds = doc.get("message_ids", ObjectId[].class);
+    	
+    	Message[] messages = Arrays.stream(messageIds)
+    		.map(e -> new Message(e, database))
+    		.toArray( Message[]::new);
+    	
+    	return messages;
+        
     }
     
+    
+    
     /**
-     * Retrieves the most recent messages.
+     * Retrieves a specified number of the most recent messages. The newest
+     * <code>Message</code>s are the end of the returned array, while the
+     * oldest <code>Message</code>s are at the beginning.
      * 
      * @param numberOfMessages the number of messages to return
-     * @return                 an array of the recent messages. The size of the 
-     *                         array is determined by the parameter 
-     *                         <code>numberOfMessages</code>.
      */
     public Message[] getPreviousMessages(int numberOfMessages) throws NoSuchElementException {
-        
-        Iterator<Message> itr = messages.descendingIterator();
-        
-        Message[] previousMessages = new Message[numberOfMessages];
-        
-        for(int i = 0; itr.hasNext() && i < numberOfMessages; i++) {
-            
-            try {
-                previousMessages[i] = itr.next();
-            } catch(NoSuchElementException e) {
-                throw e;
-            }
-            
-        }
+    	
+    	Document doc = getDocument();
+    	
+    	ObjectId[] messageIds = doc.get("message_ids", ObjectId[].class);
+    	
+    	Message[] messages = Arrays.stream(messageIds)
+    		.map(e -> new Message(e, database))
+    		.toArray( Message[]::new);
+    	
+    	Message[] previousMessages = new Message[numberOfMessages];
+    	for(int i = numberOfMessages - 1, j = messages.length - 1; i < numberOfMessages; i--, j--) {
+    		previousMessages[i] = messages[j];
+    	}
         
         return previousMessages;
         
@@ -192,98 +146,12 @@ public class Chat extends Entity{
     
     
     /**
+     * Adds a message to the <code>Chat</code>
      * 
-     * @param message the new message to be added to the chat.
+     * @param message the message to be added to the chat.
      */
     public void addMessage(Message message) {
-    	
-    	//messages will never have their fields change so there is no reason
-        //to call replaceInCollection() on them
-    	
-    	//refresh messages
-    	//add message
-    	//update collection
-    	
-    	//refresh messages
-    	
-    	
-    	
-    	Document doc = getDocumentRepresentation();
-    	
-    	ArrayList<ObjectId> messageIdList = doc.get("message_ids", new ArrayList<ObjectId>().getClass());
-    	ObjectId[] messageIds = messageIdList.toArray(ObjectId[]::new);
-    	
-    	List<Message> messagesAsList = new ArrayList(Arrays.asList((Message[]) messages.toArray()));
-    	
-    	//check for new messages
-    	int size = messagesAsList.size();
-    	for(int i = 0; i < 50; i++) {
-    		
-    		/*
-    		Message messageInList = new Message(patient, therapist, messageId, database);
-    		messages.add(messageInList);
-    		*/
-    		
-    		//this is where you should insert your new messages
-    		if(messagesAsList.get(size - (50 - i) - 1) != meesageIdList[]
-    		
-    	}
-    	
-    	
-        messages.add(message);
-        
-        messageIdList.add(message.getId());
-        collection.findOneAndUpdate(eq(id), Updates.pushEach("messageIds", messageIdList));
-        
+        collection.findOneAndUpdate(eq(id), Updates.push("message_ids", message.getId()));
     }
-    
-    /*
-    public void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
-    	
-    	MongoCollection<Document> collection = database.getCollection("chats");
-    	
-    	Document doc = new Document("_id",id)
-    			.append("patient_id", patient.getId())
-    			.append("therapist_id", therapist.getId())
-    			.append("messageIds", null);
-    	
-    	collection.insertOne(doc);
-    	
-    	List<ObjectId> messageIds = messages.stream()
-    									.map(e -> e.getId())
-    									.collect(Collectors.toList());
-    	
-    	collection.findOneAndUpdate( eq(id), Updates.pushEach("messageIds", messageIds));
-    			
-    }
-    */
-    
-    public void replaceInCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
-    	
-    	MongoCollection<Document> collection = database.getCollection("chats");
-    	
-    	List<ObjectId> messageIds = messages.stream()
-				.map(e -> e.getId())
-				.collect(Collectors.toList());
-
-    	Document doc = new Document("_id", id)
-    			.append("patient_id", patient.getId())
-    			.append("therapist_id", therapist.getId());
-    	
-    	try {
-    		
-    		collection.replaceOne(eq(id), doc);
-    		collection.findOneAndUpdate( eq(id), Updates.pushEach("message_ids", messageIds));
-    		
-    	} catch(MongoWriteException e) {
-    		throw e;
-    	} catch(MongoWriteConcernException e) {
-    		throw e;
-    	} catch(MongoException e) {
-    		throw e;
-    	}
-    	
-    }
-    
 	
 }

@@ -13,6 +13,7 @@ import com.mongodb.MongoWriteConcernException;
 import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Updates;
 
 /**
  * This class represents a request that a patient would send to a therapist in 
@@ -26,11 +27,6 @@ import com.mongodb.client.MongoDatabase;
  */
 public class Request extends Entity{
 	
-	Patient patient;
-	Therapist therapist;
-	boolean isAccepted;
-	String summary;
-	
 	/**
 	 * Creates a new <code>Request</code> with a specified <code>Patient</code> and
 	 * <code>Therapist</code>, where the other fields are read in from the database
@@ -41,20 +37,11 @@ public class Request extends Entity{
 	 * @param id        the _id field that MongoDB will use
 	 * @param database  the database this request belongs to
 	 */
-	public Request(Patient patient, Therapist therapist, ObjectId id, MongoDatabase database) {
+	public Request(ObjectId id, MongoDatabase database) {
 	    	
 	    	super(id, database);
-	    	
-	    	this.patient = patient;
-	    	this.therapist = therapist;
-	    	
 	    	collection = database.getCollection("requests");
-	    	Document doc = collection.find(eq(id)).first();
 	    	
-	    	isAccepted = doc.getBoolean("is_accepted", false);
-	    	
-	        summary = doc.getString("summary");
-    	
     }
 	
 	/**
@@ -68,6 +55,8 @@ public class Request extends Entity{
 	 */
 	public Request(Patient patient, Therapist therapist, MongoDatabase database) 
 			throws IllegalStateException {
+		
+		super(database);
 		
 		//Check if a request for these users already exists
 		collection = database.getCollection("requests");
@@ -84,38 +73,12 @@ public class Request extends Entity{
     				+ "have not been created in the database yet");
     	}
     	
-    	//create a new, unique _id for the request
-    	boolean isDuplicate = false;
-		ObjectId id = null;
-		
-		do {
-			
-			isDuplicate = false;
-			id = ObjectId.get();
-			
-			try {
-				collection.insertOne(new Document("_id", id));
-			} catch(MongoWriteException e) {
-				if(e.getCode() == 11000) {
-					isDuplicate = true;
-				} else {
-					throw e;
-				}
-			}
-			
-		} while(isDuplicate);
     	
 		//initialize the class fields
-    	this.id = id;
-    	this.database = database;
+    	id = getUniqueId();
+    	collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
+    	collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
     	
-    	this.patient = patient;
-    	this.therapist = therapist;
-    	
-    	this.isAccepted = false;
-    	
-    	replaceInCollection();
-		
 	}
 	
 	/**
@@ -125,11 +88,15 @@ public class Request extends Entity{
 	 *  
 	 * @param patient   the patient sending this request
 	 * @param therapist the therapist receiving this request
+	 * @param summary   the summary of the patient's problem(s)
 	 * @param database  the database this request belongs to
 	 */
 	public Request(Patient patient, Therapist therapist, String summary, MongoDatabase database) 
 			throws IllegalStateException {
 		
+		super(database);
+		
+		//Check if a request for these users already exists
 		collection = database.getCollection("requests");
 		
 		ObjectId patientId = patient.getId();
@@ -144,37 +111,12 @@ public class Request extends Entity{
     				+ "have not been created in the database yet");
     	}
     	
-    	//create a new, unique _id for the request
-    	boolean isDuplicate = false;
-		ObjectId id = null;
-		
-		do {
-			
-			isDuplicate = false;
-			id = ObjectId.get();
-			
-			try {
-				collection.insertOne(new Document("_id", id));
-			} catch(MongoWriteException e) {
-				if(e.getCode() == 11000) {
-					isDuplicate = true;
-				} else {
-					throw e;
-				}
-			}
-			
-		} while(isDuplicate);
     	
-    	this.id = id;
-    	this.database = database;
-    	
-    	this.patient = patient;
-    	this.therapist = therapist;
-    	
-    	this.isAccepted = false;
-    	this.summary = summary;
-    	
-    	replaceInCollection();
+		//initialize the class fields
+    	id = getUniqueId();
+    	collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
+    	collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
+    	collection.findOneAndUpdate(eq(id), Updates.set("summary", summary));
 		
 	}
     
@@ -183,7 +125,7 @@ public class Request extends Entity{
      * @return the patient associated with the request.
      */
     public Patient getPatient() {
-        return patient;
+    	return new Patient(getDocument().getObjectId("patient_id"), database);
     }
     
     /**
@@ -191,7 +133,7 @@ public class Request extends Entity{
      * @return the therapist associated with the request.
      */
     public Therapist getTherapist() {
-        return therapist;
+    	return new Therapist(getDocument().getObjectId("therapist_id"), database);
     }
     
     /**
@@ -199,7 +141,7 @@ public class Request extends Entity{
      * @return the summary associated with the request.
      */
     public String getSummary() {
-        return summary;
+    	return getDocument().getString("summary");
     }
     
     /**
@@ -207,36 +149,19 @@ public class Request extends Entity{
      * @return a boolean value which, if <code>true</code>, indicates that the 
      *  request is accepted.
      */
-    public boolean isAccepted() {
-        return isAccepted;
-    }
-    
-    public void setID(ObjectId id) {
-    	this.id = id;
-    }
-    
-    /**
-     * 
-     * @param patient the patient to be associated with the request.
-     */
-    public void setPatient(Patient patient) {
-        this.patient = patient;
-    }
-    
-    /**
-     * 
-     * @param therapist the therapist to be associated with the request.
-     */
-    public void setTherapist(Therapist therapist) {
-        this.therapist = therapist;
-    }
-    
-    /**
-     * 
-     * @param summary the summary to be associated with the request.
-     */
-    public void setSummary(String summary) {
-       this.summary = summary;
+    public Boolean status() {
+   
+    	Boolean isAccepted = getDocument().getBoolean("is_accepted");
+    	Boolean isDenied = getDocument().getBoolean("is_denied");
+    	
+    	if(isAccepted = Boolean.valueOf(true)) {
+    		return isAccepted;
+    	} else if(isDenied = Boolean.valueOf(true)) {
+    		return isDenied;
+    	}
+    	
+    	return null;
+        
     }
     
     /**
@@ -244,38 +169,11 @@ public class Request extends Entity{
      * object.
      */
     void accept() throws IllegalStateException {
-        isAccepted = true;
+        collection.findOneAndUpdate(eq(id), Updates.set("is_accepted", Boolean.valueOf(true)));
     }
     
-    public void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
-    	
-    	MongoCollection<Document> collection = database.getCollection("requests");
-    	
-    	Document doc = new Document("_id", id)
-    			.append("patient_id", patient.getId())
-    			.append("therapist_id", therapist.getId())
-    			.append("is_accepted", isAccepted)
-    			.append("summary", summary);
-    	
-    	collection.insertOne(doc);
-    	
+    void deny() {
+    	collection.findOneAndUpdate(eq(id), Updates.set("is_denied", Boolean.valueOf(true)));
     }
     
-    public void replaceInCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
-    	
-    	MongoCollection<Document> collection = database.getCollection("requests");
-    	
-    	Document doc = new Document("_id", id)
-    			.append("patient_id", patient.getId())
-    			.append("therapist_id", therapist.getId())
-    			.append("is_accepted", isAccepted)
-    			.append("summary", summary);
-    	
-    	collection.replaceOne(eq(id), doc);
-    	
-    }
-    
-    
-	
-
 }

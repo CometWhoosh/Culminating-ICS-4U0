@@ -12,6 +12,7 @@ import org.bson.types.ObjectId;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Updates;
 
 /**
  * This class represents a user. It is abstract because it is impractical to 
@@ -22,24 +23,17 @@ import com.mongodb.client.MongoDatabase;
  * 
  */
 public abstract class User extends Entity{
-
-    protected String firstName;
-    protected String lastName;
-    protected String email;
-    protected byte[] hashedPassword;
-    protected byte[] salt;
     
     public User(ObjectId id, MongoDatabase database) {
 		super(id, database);
     }
-
     
     /**
      * 
      * @return the first name of the user.
      */
     public String getFirstName() {
-        return firstName;
+        return getDocument().getString("first_name");
     }
     
     /**
@@ -47,18 +41,22 @@ public abstract class User extends Entity{
      * @return the last name of the user.
      */
     public String getLastName() {
-        return lastName;
+        return getDocument().getString("last_name");
     }
     
     public String getFullName() {
-    	return firstName + " " + lastName;
+    	
+    	Document doc = getDocument();
+    	return doc.getString("first_name") + " " + doc.getString("last_name");
+    	
     }
+    
     /**
      * 
      * @return the user's email.
      */
     public String getEmail() {
-    	return email;
+    	return getDocument().getString("email");
     }
     
     /**
@@ -66,7 +64,7 @@ public abstract class User extends Entity{
      * @return the hashed version of the user's password.
      */
     public byte[] getHashedPassword() {
-    	return hashedPassword;
+    	return getDocument().get("password_hash", Binary.class).getData();
     }
     
     /**
@@ -74,15 +72,7 @@ public abstract class User extends Entity{
      * @return the user's salt.
      */
     public byte[] getSalt() {
-    	return salt;
-    }
-    
-    /**
-     * 
-     * @param id the user id. 
-     */
-    public void setID(ObjectId id) {
-        this.id = id;
+    	return getDocument().get("salt", Binary.class).getData();
     }
     
     /**
@@ -90,7 +80,7 @@ public abstract class User extends Entity{
      * @param firstName the first name of the user.
      */
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        collection.findOneAndUpdate(eq(id), Updates.set("first_name", firstName));
     }
     
     /**
@@ -98,7 +88,7 @@ public abstract class User extends Entity{
      * @param lastName the last name of the user.
      */
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+    	 collection.findOneAndUpdate(eq(id), Updates.set("last_name", lastName));
     }
     
     /**
@@ -106,7 +96,7 @@ public abstract class User extends Entity{
      * @param email the user's email.
      */
     public void setEmail(String email) {
-    	this.email = email;
+    	 collection.findOneAndUpdate(eq(id), Updates.set("email", email));
     }
     
     /**
@@ -114,7 +104,7 @@ public abstract class User extends Entity{
      * @param hashedPassword the hashed version of the user's password.
      */
     public void setHashedPassword(byte[] hashedPassword) {
-    	this.hashedPassword = hashedPassword;
+    	 collection.findOneAndUpdate(eq(id), Updates.set("password_hash", new Binary(hashedPassword)));
     }
     
     /**
@@ -122,21 +112,7 @@ public abstract class User extends Entity{
      * @param salt the user's salt.
      */
     public void setSalt(byte[] salt) {
-    	this.salt = salt;
+    	 collection.findOneAndUpdate(eq(id), Updates.set("salt", new Binary(salt)));
     }
     
-    public void replaceInCollection() {
-    	
-    	Document doc = new Document("_id", id)
-    			.append("first_name", firstName)
-    			.append("last_name", lastName)
-    			.append("email", email)
-    			.append("hashed_password", new Binary(hashedPassword))
-    			.append("salt", new Binary(salt));
-    	
-    	collection.replaceOne(eq(id), doc);
-    	
-    }
-    
-	
 }

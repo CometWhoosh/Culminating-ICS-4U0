@@ -58,10 +58,10 @@ public class RequestTherapistServlet extends HttpServlet {
 		}
 		
 		therapist.addRequest(patientRequest);
-		therapist.replaceInCollection();
+		therapist.updateToCollection();
 		
 		patient.setRequest(patientRequest);
-		patient.replaceInCollection();
+		patient.updateToCollection();
 		
 		{
 			

@@ -1,17 +1,14 @@
 package com.therapy.entities;
 
+import static com.mongodb.client.model.Filters.eq;
+
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 
-import com.mongodb.MongoException;
-import com.mongodb.MongoWriteConcernException;
-import com.mongodb.MongoWriteException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Updates;
-
-import static com.mongodb.client.model.Filters.eq;
 
 /**
  * This class represents a patient. Since it is one of the two types of users,
@@ -22,173 +19,59 @@ import static com.mongodb.client.model.Filters.eq;
  */
 public class Patient extends User {
 	
-	//TODO: Make <code>therapists</code> into a single <code>Therapist</code>. Same for requests
-	private Request request;
-    private Therapist therapist;
-    private Chat chat;
-    
+    /**
+     * Creates a new <code>Patient</code> that initializes it's data using the data
+     * from the database using the passed id.
+     * 
+     * @param id       the id of the <code>Patient</code>
+     * @param database the database that the <code>Patient</code> belongs to
+     */
     public Patient(ObjectId id, MongoDatabase database) {
     	
     	super(id,database);
-    	
     	collection = database.getCollection("patients");
     	
-    	Document patientDoc = collection.find(eq(id)).first();
-    	
-    	firstName = patientDoc.getString("first_name");
-    	lastName = patientDoc.getString("last_name");
-    	email = patientDoc.getString("email");
-    	hashedPassword = patientDoc.get("password_hash", Binary.class).getData();
-    	salt = patientDoc.get("salt", Binary.class).getData();
-    	
-    	ObjectId therapistId = patientDoc.getObjectId("therapist_id");
-    	if(therapistId != null) {
-    		therapist = new Therapist(therapistId, database);
-    	}
-    	
-    	
-    	ObjectId chatId = patientDoc.getObjectId("chat");
-    	if(chatId != null) {
-    		chat = new Chat(this, therapist, chatId, database);
-    	}
-    	
-    	
-    	ObjectId requestId = patientDoc.getObjectId("request");
-    	if(requestId != null) {
-    		request = new Request(this, therapist, requestId, database);
-    	}
-    	
-    	
     }
-    
-    public Patient(ObjectId id, Therapist therapist, MongoDatabase database) {
-    	
-    	super(id,database);
-    	
-    	collection = database.getCollection("patients");
-    	
-    	Document patientDoc = collection.find(eq(id)).first();
-    	
-    	firstName = patientDoc.getString("first_name");
-    	lastName = patientDoc.getString("last_name");
-    	email = patientDoc.getString("email");
-    	hashedPassword = patientDoc.get("password_hash", Binary.class).getData();
-    	salt = patientDoc.get("salt", Binary.class).getData();
-    	
-    	this.therapist = therapist;
-    	
-    	ObjectId chatId = patientDoc.getObjectId("chat");
-    	chat = new Chat(this, therapist, chatId, database);
-    	
-    	ObjectId requestId = patientDoc.getObjectId("request");
-    	request = new Request(this, therapist, requestId, database);
-    	
-    }
-    
-    public Patient(String email, MongoDatabase database) {
-    	
-    	//database.getCollection("patients").find(eq("email", email)).first().getObjectId("_id")
-    	super(new ObjectId(email),database);
-    	
-    	MongoCollection<Document> patientCollection = database.getCollection("patients");
-    	
-    	Document patientDoc = patientCollection.find(eq(id)).first();
-    	
-    	firstName = patientDoc.getString("first_name");
-    	lastName = patientDoc.getString("last_name");
-    	email = patientDoc.getString("email");
-    	hashedPassword = patientDoc.get("password_hash", Binary.class).getData();
-    	salt = patientDoc.get("salt", Binary.class).getData();
-    	
-    	ObjectId therapistId = patientDoc.getObjectId("therapist_id");
-    	therapist = new Therapist(therapistId, database);
-    	
-    	ObjectId chatId = patientDoc.getObjectId("chat");
-    	chat = new Chat(this, therapist, chatId, database);
-    	
-    	ObjectId requestId = patientDoc.getObjectId("request");
-    	request = new Request(this, therapist, requestId, database);
-    	
-    }
-    
-    
     
     /**
      * 
-     * @return a <code>List</code> of the current requests.
+     * @return the <code>Request</code> of the <code>Patient</code>, or <code>null</code>
+     * 		   if the <code>Patient</code> does not have one
      */
     public Request getRequest() {
-    	
-    	if(request == null) {
-    		return null;
-    	}
-    	
-    	request = new Request(this, request.getTherapist(), request.getId(), database);
-        return request;
-        
+    	return new Request(getDocument().getObjectId("request_id"), database);
     }
     
     public Therapist getTherapist() {
-    	
-    	if(therapist == null) {
-    		return null;
-    	}
-    	
-    	therapist = new Therapist(therapist.getId(), database);
-    	return therapist;
-    	
+    	return new Therapist(getDocument().getObjectId("therapist_id"), database);
     }
     
     public Chat getChat() {
-    	
-    	if(chat == null) {
-    		return null;
-    	}
-    	chat = new Chat(this, chat.getTherapist(), database);
-    	return chat;
-    	
+    	return new Chat(getDocument().getObjectId("chat_id"), database);
     }
     
     /**
      * 
-     * @param request the new <code>Request</code> to be added to the.
-     *        <code>List</code>
+     * @param request the new <code>Request</code>
      */
     public void setRequest(Request request) {
-    	
-        this.request = request;
     	collection.findOneAndUpdate(eq(id), Updates.set("request_id", request.getId()));
-        
     }
     
+    /**
+     * 
+     * @param therapist the new <code>Therapist</code>
+     */
     public void setTherapist(Therapist therapist) {
-    	
-    	this.therapist = therapist;
     	collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
-    	
     }
     
+    /**
+     * 
+     * @param chat the new <code>Chat</code>
+     */
     public void setChat(Chat chat) {
-    	
-    	this.chat = chat;
     	collection.findOneAndUpdate(eq(id), Updates.set("chat_id", chat.getId()));
-    	
     }
-    
-    //Useless. If you will use it, refresh everything at the beginning of the method
-    /*
-    public void insertIntoCollection() throws MongoWriteException, MongoWriteConcernException, MongoException {
-    	
-    	Document doc = getDocument(collection)
-    			.append("request_id", request.getId())
-    			.append("therapist_id", therapist.getId())
-    			.append("chat_id", chat.getId());
-    	
-    	collection.insertOne(doc);
-    	
-    }
-    */
-    
-    
 
 }
