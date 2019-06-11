@@ -54,12 +54,13 @@ public class RequestTherapistServlet extends HttpServlet {
 		if(summary == null || summary == "") {
 			patientRequest = new Request(patient, therapist, database);
 		} else {
+			
 			System.out.println("There is a summary!");
 			patientRequest = new Request(patient, therapist, summary, database);
-		}
+			therapist.addRequest(patientRequest);
+			patient.addRequest(patientRequest);
 		
-		therapist.addRequest(patientRequest);
-		patient.addRequest(patientRequest);
+		}
 		
 		request.getRequestDispatcher("/patientHomepage.jsp").forward(request, response);
 		

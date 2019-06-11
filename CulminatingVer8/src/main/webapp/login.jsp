@@ -10,7 +10,7 @@
 
 	<h1>Login</h1>
 
-	<form method="post" action="/CulminatingVer8/loginServlet">
+	<form class="a" method="post" action="/CulminatingVer8/loginServlet">
 	
 		<p>I am a:</p>
 		<select name="userType" required>
@@ -46,6 +46,14 @@
 		
 	</form>
 	
+	<p id="pTest">Male</p>
+	<button>change</button>
+	
+	<script type="text/javascript">
+	$('button').click(function(){
+	     $('#pTest').text('test')
+	})
+	</script>
 	
 	<p>Don't have an account?<p>
 	<a href="signUp.jsp">Sign up</a>

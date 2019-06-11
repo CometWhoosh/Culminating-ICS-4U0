@@ -43,7 +43,7 @@
 	
 	</form>
 	
-	<form method="get" action="/CulminatingVer8/getTherapists">
+	<form method="post" action="/CulminatingVer8/getTherapists">
 		<input type="submit" value="Get different therapists">
 	</form>
 	

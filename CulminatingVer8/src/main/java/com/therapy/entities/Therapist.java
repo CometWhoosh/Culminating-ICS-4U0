@@ -4,17 +4,10 @@ import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import org.bson.Document;
-import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 
-import com.mongodb.MongoException;
-import com.mongodb.MongoWriteConcernException;
-import com.mongodb.MongoWriteException;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Updates;
 
@@ -71,15 +64,20 @@ public class Therapist extends User {
     public Request[] getRequests() {
     	
     	Document doc = getDocument();
-    	
-    	ObjectId[] requestIds = doc.get("request_ids", ObjectId[].class);
-    	
     	Request[] requests = null;
-    	if(requestIds != null) {
-    		
-    		requests = Arrays.stream(requestIds)
-    	    		.map(e -> new Request(e, database))
-    	    		.toArray(Request[]::new);
+    	try {
+	    	ObjectId[] requestIds = (ObjectId[])doc.get("request_ids", new ArrayList<ObjectId>().getClass()).toArray();
+	    	
+	    	requests = null;
+	    	if(requestIds != null) {
+	    		
+	    		requests = Arrays.stream(requestIds)
+	    	    		.map(e -> new Request(e, database))
+	    	    		.toArray(Request[]::new);
+	    		
+	    	}
+	    	
+    	} catch(NullPointerException e) {
     		
     	}
     	
@@ -91,15 +89,22 @@ public class Therapist extends User {
     public Patient[] getPatients() {
     	
     	Document doc = getDocument();
-    	
-    	ObjectId[] patientIds = doc.get("message_ids", ObjectId[].class);
-    
     	Patient[] patients = null;
-    	if(patientIds != null) {
+    	
+    	try {
     		
-    		patients = Arrays.stream(patientIds)
-    	    		.map(e -> new Patient(e, database))
-    	    		.toArray(Patient[]::new);
+	    	ObjectId[] patientIds = doc.get("message_ids", ObjectId[].class);
+	    
+	    	patients = null;
+	    	if(patientIds != null) {
+	    		
+	    		patients = Arrays.stream(patientIds)
+	    	    		.map(e -> new Patient(e, database))
+	    	    		.toArray(Patient[]::new);
+	    		
+	    	}
+	    	
+    	} catch(NullPointerException e) {
     		
     	}
     	
@@ -110,18 +115,25 @@ public class Therapist extends User {
     public Chat[] getChats() {
 
     	Document doc = getDocument();
-    	
-    	ObjectId[] chatIds = doc.get("chat_ids", ObjectId[].class);
-    	
     	Chat[] chats = null;
-    	if(chatIds != null) {
+    	
+    	try {
     		
-    		chats = Arrays.stream(chatIds)
-    	    		.map(e -> new Chat(e, database))
-    	    		.toArray( Chat[]::new);
-    	    	
-    		
-    	}
+	    	ObjectId[] chatIds = doc.get("chat_ids", ObjectId[].class);
+	    	
+	    	chats = null;
+	    	if(chatIds != null) {
+	    		
+	    		chats = Arrays.stream(chatIds)
+	    	    		.map(e -> new Chat(e, database))
+	    	    		.toArray( Chat[]::new);
+	    	    	
+	    		
+	    	}	
+	    	
+		} catch(NullPointerException e) {
+			
+		}
     	
     	return chats;
     	

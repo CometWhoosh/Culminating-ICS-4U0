@@ -109,12 +109,12 @@ public class LoginServlet extends HttpServlet {
 			session.setAttribute("user_type", userType);
 			session.setMaxInactiveInterval(-1);
 			
-			if(userType.equals("patient")) {
+			if(userType.equals("Patient")) {
 				
-				response.sendRedirect(projectPath + "/patientHomepage.html");
+				response.sendRedirect(projectPath + "/patientHomepage.jsp");
 				return;
 			} else {
-				response.sendRedirect(projectPath + "/therapistHomepage.html");
+				response.sendRedirect(projectPath + "/therapistHomepage.jsp");
 				return;
 			}
 			
