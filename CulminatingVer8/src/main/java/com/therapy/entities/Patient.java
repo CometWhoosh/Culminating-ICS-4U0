@@ -52,14 +52,6 @@ public class Patient extends User {
     
     /**
      * 
-     * @param request the new <code>Request</code>
-     */
-    public void setRequest(Request request) {
-    	collection.findOneAndUpdate(eq(id), Updates.set("request_id", request.getId()));
-    }
-    
-    /**
-     * 
      * @param therapist the new <code>Therapist</code>
      */
     public void setTherapist(Therapist therapist) {

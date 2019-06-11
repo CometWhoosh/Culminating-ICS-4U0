@@ -114,9 +114,15 @@ public class Request extends Entity{
     	
 		//initialize the class fields
     	id = getUniqueId();
+    	
     	collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
     	collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
     	collection.findOneAndUpdate(eq(id), Updates.set("summary", summary));
+    	
+    	collection.findOneAndUpdate(eq(id), Updates.set("patient_accepted", false));
+    	collection.findOneAndUpdate(eq(id), Updates.set("patient_denied", false));
+    	collection.findOneAndUpdate(eq(id), Updates.set("therapist_accepted", false));
+    	collection.findOneAndUpdate(eq(id), Updates.set("therapist_denied", false));
 		
 	}
     
@@ -149,19 +155,30 @@ public class Request extends Entity{
      * @return a boolean value which, if <code>true</code>, indicates that the 
      *  request is accepted.
      */
-    public Boolean status() {
+    public boolean isAccepted() {
    
-    	Boolean isAccepted = getDocument().getBoolean("is_accepted");
-    	Boolean isDenied = getDocument().getBoolean("is_denied");
+    	Boolean patientAccepted = getDocument().getBoolean("patient_accepted", false);
+    	Boolean therapistAccepted = getDocument().getBoolean("therapist_accepted", false);
     	
-    	if(isAccepted = Boolean.valueOf(true)) {
-    		return isAccepted;
-    	} else if(isDenied = Boolean.valueOf(true)) {
-    		return isDenied;
+    	if(patientAccepted && therapistAccepted) {
+    		return true;
     	}
     	
-    	return null;
+    	return false;
         
+    }
+    
+    public boolean isDenied() {
+    	
+    	Boolean patientDenied = getDocument().getBoolean("patient_denied", false);
+    	Boolean therapistDenied = getDocument().getBoolean("therapist_denied", false);
+    	
+    	if(patientDenied || therapistDenied) {
+     		return true;
+     	}
+    	
+    	return false;
+    	
     }
     
     /**

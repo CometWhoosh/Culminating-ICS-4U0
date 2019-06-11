@@ -74,9 +74,15 @@ public class Therapist extends User {
     	
     	ObjectId[] requestIds = doc.get("request_ids", ObjectId[].class);
     	
-    	Request[] requests = Arrays.stream(requestIds)
-    		.map(e -> new Request(e, database))
-    		.toArray(Request[]::new);
+    	Request[] requests = null;
+    	if(requestIds != null) {
+    		
+    		requests = Arrays.stream(requestIds)
+    	    		.map(e -> new Request(e, database))
+    	    		.toArray(Request[]::new);
+    		
+    	}
+    	
     	
     	return requests;
         
@@ -87,10 +93,16 @@ public class Therapist extends User {
     	Document doc = getDocument();
     	
     	ObjectId[] patientIds = doc.get("message_ids", ObjectId[].class);
+    
+    	Patient[] patients = null;
+    	if(patientIds != null) {
+    		
+    		patients = Arrays.stream(patientIds)
+    	    		.map(e -> new Patient(e, database))
+    	    		.toArray(Patient[]::new);
+    		
+    	}
     	
-    	Patient[] patients = Arrays.stream(patientIds)
-    		.map(e -> new Patient(e, database))
-    		.toArray(Patient[]::new);
     	
     	return patients;
     }
@@ -101,9 +113,15 @@ public class Therapist extends User {
     	
     	ObjectId[] chatIds = doc.get("chat_ids", ObjectId[].class);
     	
-    	Chat[] chats = Arrays.stream(chatIds)
-    		.map(e -> new Chat(e, database))
-    		.toArray( Chat[]::new);
+    	Chat[] chats = null;
+    	if(chatIds != null) {
+    		
+    		chats = Arrays.stream(chatIds)
+    	    		.map(e -> new Chat(e, database))
+    	    		.toArray( Chat[]::new);
+    	    	
+    		
+    	}
     	
     	return chats;
     	
@@ -123,6 +141,14 @@ public class Therapist extends User {
     	Request[] requests = getRequests();
     	Patient[] patients = getPatients();
     	
+    	if(requests == null) {
+    		requests = new Request[0];
+    	}
+    	
+    	if(patients == null) {
+    		patients = new Patient[0];
+    	}
+    	
     	if(patientLimit == 0) {
             throw new IllegalStateException("A request limit must be set before adding requests");
         } else if(requests.length + 1 + patients.length > patientLimit) {
@@ -137,6 +163,17 @@ public class Therapist extends User {
         collection.findOneAndUpdate(eq(id), Updates.push("request_ids", request.getId()));
         collection.findOneAndUpdate(eq(id), Updates.set("request_limit", requestLimit));
         
+    }
+    
+    
+    
+    public void addPatient(Patient patient) {
+    	
+    	collection.findOneAndUpdate(eq(id), Updates.push("patient_ids", patient.getId()));
+    	
+    	Chat chat = new Chat(patient, this, database);
+    	collection.findOneAndUpdate(eq(id), Updates.push("chat_ids", chat.getId()));
+    	
     }
     
     public void addRating(Integer newUserRating) throws IllegalArgumentException {

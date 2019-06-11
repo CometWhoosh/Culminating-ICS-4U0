@@ -38,7 +38,7 @@ public abstract class Entity {
 	 * 
 	 * @return the id of the <code>Entity</code>.
 	 */
-	protected ObjectId getId() {
+	public ObjectId getId() {
 		return id;
 	}
 	

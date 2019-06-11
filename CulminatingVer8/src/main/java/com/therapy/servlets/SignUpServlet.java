@@ -63,6 +63,20 @@ public class SignUpServlet extends HttpServlet {
 		String lastName = request.getParameter("last_name");
 		String email = request.getParameter("email");
 		String password = request.getParameter("password");
+		int patientLimit = 0;
+		
+		
+		if(userType.equals("Therapist")) {
+			
+			try {
+				patientLimit = Integer.parseInt(request.getParameter("patientLimitInput"));
+			} catch(NumberFormatException e) {
+				response.sendRedirect(projectPath + "/signUp.jsp?numberFormatError=1");
+				return;
+			}
+			
+			
+		}
 		
 		//Hash password
 		SecureRandom random = new SecureRandom();
@@ -103,6 +117,10 @@ public class SignUpServlet extends HttpServlet {
 			fields.put("password_hash", new Binary(hash));
 			fields.put("salt", new Binary(salt));
 			
+			if(userType.equals("Therapist")) {
+				fields.put("patient_limit", patientLimit);
+			}
+			
 			boolean isDuplicate = false;
 			ObjectId id = null;
 			
@@ -128,6 +146,7 @@ public class SignUpServlet extends HttpServlet {
 				collection.replaceOne(eq(id), new Document(fields));
 			} catch(MongoWriteException e) {
 				response.sendRedirect(projectPath + "/signUp.jsp?databaseError=1");
+				return;
 			}
 			
 			HttpSession session = request.getSession();

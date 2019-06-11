@@ -25,7 +25,7 @@
 	
 	<!-- REQUIRES servlet to have the path //requestTherapist -->
 	
-	<form method="post" id="form" action="/CulminatingVer8/requestTherapist">
+	<form method="post" action="/CulminatingVer8/requestTherapist">
 	
 		<% for(int i = 0; i < 10; i++) { %>
 			<lable><input type="radio" name="therapist" value="<%=therapistIds[i]%>"><%=names[i]%></lable>
@@ -33,41 +33,26 @@
 			<br>
 		<% } %>
 		
+		<textarea rows="10" cols="55" name="textarea">
+			Enter summary of you mental health issues (optional) ...
+		</textarea>
+		
+		<br>
+		
 		<input type="submit" value="Next">
 	
 	</form>
-	
-	<textarea rows="10" cols="55" id="textarea" form="form">
-		Enter summary of you mental health issues (optional) ...
-	</textarea>
-	
 	
 	<form method="get" action="/CulminatingVer8/getTherapists">
 		<input type="submit" value="Get different therapists">
 	</form>
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	<!--  get elements by name in javascript
-		  set their value attributes to the mongo id
-	-->
-	
-	
+	<!--
 	<script type="text/javascript">
 		
 	</script>
-	
+	-->
 	
 
 </body>

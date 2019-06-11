@@ -108,9 +108,12 @@ public class Chat extends Entity{
     	
     	ObjectId[] messageIds = doc.get("message_ids", ObjectId[].class);
     	
-    	Message[] messages = Arrays.stream(messageIds)
-    		.map(e -> new Message(e, database))
-    		.toArray( Message[]::new);
+    	Message[] messages = null;
+    	if(messageIds != null) {
+    		messages = Arrays.stream(messageIds)
+    	    		.map(e -> new Message(e, database))
+    	    		.toArray( Message[]::new);
+    	}
     	
     	return messages;
         
@@ -135,15 +138,25 @@ public class Chat extends Entity{
     		.map(e -> new Message(e, database))
     		.toArray( Message[]::new);
     	
-    	Message[] previousMessages = new Message[numberOfMessages];
-    	for(int i = numberOfMessages - 1, j = messages.length - 1; i < numberOfMessages; i--, j--) {
-    		previousMessages[i] = messages[j];
+    	Message[] previousMessages = null;
+    	if(messages != null) {
+	    	previousMessages = new Message[numberOfMessages];
+	    	for(int i = numberOfMessages - 1, j = messages.length - 1; i < numberOfMessages && i < messages.length; i--, j--) {
+	    		previousMessages[i] = messages[j];
+	    	}
     	}
-        
+    	
         return previousMessages;
         
     }
     
+    public Message[] getMessagesSince(Message message) {
+    	
+    	List<Message> messages = Arrays.asList(getPreviousMessages(100));
+    	messages.subList(messages.indexOf(message), messages.size());
+    	return messages.toArray(Message[]::new);
+    	
+    }
     
     /**
      * Adds a message to the <code>Chat</code>

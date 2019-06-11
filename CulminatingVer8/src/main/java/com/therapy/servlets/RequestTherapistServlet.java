@@ -54,45 +54,14 @@ public class RequestTherapistServlet extends HttpServlet {
 		if(summary == null || summary == "") {
 			patientRequest = new Request(patient, therapist, database);
 		} else {
+			System.out.println("There is a summary!");
 			patientRequest = new Request(patient, therapist, summary, database);
 		}
 		
 		therapist.addRequest(patientRequest);
-		therapist.updateToCollection();
+		patient.addRequest(patientRequest);
 		
-		patient.setRequest(patientRequest);
-		patient.updateToCollection();
-		
-		{
-			
-			MongoCollection<Document> patientCol = database.getCollection("patients");
-			MongoCollection<Document> therapistCol = database.getCollection("therapists");
-			MongoCollection<Document> requestCol = database.getCollection("requests");
-			
-			Document patientDoc = patientCol.find(eq(patientId)).first();
-			
-			Document pReqDoc = requestCol.find(eq(patientDoc.getObjectId("request_id"))).first();
-			Document prPatDoc = patientCol.find(eq(pReqDoc.getObjectId("patient_id"))).first();
-			Document prTherDoc = therapistCol.find(eq(pReqDoc.getObjectId("therapist_id"))).first();
-			System.out.println("REQUEST FROM PATIENT");
-			System.out.println("patient:" + prPatDoc.getString("first_name"));
-			System.out.println("therapist: " + prTherDoc.getString("first_name"));
-			System.out.println("summary: " + pReqDoc.getString("summary"));
-			System.out.println("========================================");
-			
-			
-			Document therapistDoc = therapistCol.find(eq(therapistId)).first();
-			
-			Document tReqDoc = requestCol.find(eq(therapistDoc.getObjectId("request_id"))).first();
-			Document trPatDoc = patientCol.find(eq(tReqDoc.getObjectId("patient_id"))).first();
-			Document trTherDoc = therapistCol.find(eq(tReqDoc.getObjectId("therapist_id"))).first();
-			System.out.println("REQUEST FROM THERAPIST");
-			System.out.println("patient:" + trPatDoc.getString("first_name"));
-			System.out.println("therapist: " + trTherDoc.getString("first_name"));
-			System.out.println("summary: " + tReqDoc.getString("summary"));
-			System.out.println("========================================");
-			
-		}
+		request.getRequestDispatcher("/patientHomepage.jsp").forward(request, response);
 		
 	}
 	
