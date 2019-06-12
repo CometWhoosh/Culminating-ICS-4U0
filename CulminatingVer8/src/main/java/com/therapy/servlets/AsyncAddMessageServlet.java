@@ -55,7 +55,8 @@ public class AsyncAddMessageServlet extends HttpServlet {
 	    		  
 	    		  //Add message to chat
 	    		  HttpSession session = request.getSession();
-	    		  if( ((String)session.getAttribute("userType")).equals("Patient") ) {
+	    		  String userType = (String)session.getAttribute("userType");
+	    		  if(userType.equals("Patient")) {
 	    			  
 	    			  Patient patient = new Patient((ObjectId)session.getAttribute("id"), database);
 		    		  Chat chat = patient.getChat();

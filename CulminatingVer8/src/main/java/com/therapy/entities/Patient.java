@@ -65,5 +65,12 @@ public class Patient extends User {
     public void setChat(Chat chat) {
     	collection.findOneAndUpdate(eq(id), Updates.set("chat_id", chat.getId()));
     }
+    
+    public void acceptRequest(Request request) {
+    	
+    	setTherapist(request.getTherapist());
+    	setChat(new Chat(this, getTherapist(), database));
+    	
+    }
 
 }

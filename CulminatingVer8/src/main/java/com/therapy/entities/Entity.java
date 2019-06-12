@@ -46,8 +46,15 @@ public abstract class Entity {
 	 * 
 	 * @return a <code>Document</code> representing this <code>Entity</code>
 	 */
-	public Document getDocument() {
-    	return collection.find(eq(id)).first();
+	public Document getDocument() throws IllegalStateException {
+		
+		Document doc = collection.find(eq(id)).first();
+		
+		if(doc == null) {
+			throw new IllegalStateException("Document could not be found");
+		}
+		
+    	return doc;
     }
 	
 	public ObjectId getUniqueId() {

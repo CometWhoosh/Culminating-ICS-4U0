@@ -189,26 +189,24 @@ public class Request extends Entity{
     	return getDocument().getBoolean("patient_accepted", false);
     }
     
-    public boolean patientDenied() {
-    	return getDocument().getBoolean("patient_denied", false);
-    }
-    
-    public boolean therapistDenied() {
-    	return getDocument().getBoolean("patient_denied", false);
-    }
-    
-    
     /**
-     * Accepts the request. Should only be used by a <code>Therapist</code> 
-     * object.
+     * Accepts the request. 
      */
-    void accept() throws IllegalStateException {
-        collection.findOneAndUpdate(eq(id), Updates.set("is_accepted", Boolean.valueOf(true)));
+    public void accept(Class<? extends User> userClass) throws IllegalStateException {
+    	
+    	if(userClass == Patient.class) {
+    		collection.findOneAndUpdate(eq(id), Updates.set("patient_accepted", Boolean.valueOf(true)));
+    	} else if(userClass == Therapist.class) {
+    		collection.findOneAndUpdate(eq(id), Updates.set("Therapist_accepted", Boolean.valueOf(true)));
+    	}
+    
     }
     
     void deny() {
+    	
     	collection.findOneAndUpdate(eq(id), Updates.set("is_denied", Boolean.valueOf(true)));
+    	collection.findOneAndDelete(eq(id));
+    	
     }
-    
     
 }
