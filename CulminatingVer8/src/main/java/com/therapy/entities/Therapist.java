@@ -49,7 +49,7 @@ public class Therapist extends User {
     	return getDocument().getBoolean("can_receive_requests");
     }
 
-    public double getRating() {
+    public IntegegetRating() {
     	return getDocument().getInteger("rating");
     }
     

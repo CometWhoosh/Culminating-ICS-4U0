@@ -16,7 +16,31 @@
 	<%@ page import="com.therapy.servlets.Util" %>
 	<%@ page import="com.therapy.entities.*" %>
 	
-	<%session.setAttribute("isNewMessagingSession", true);%>
+	<%
+		MongoClient mongoClient = Util.getMongoClient();
+		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);	
+		
+		//Get Therapist and patient name
+		Therapist therapist = new Therapist((ObjectId)session.getAttribute("id"), database);
+		String targetPatientName = (String)request.getAttribute("patientChats");
+		
+		//Get the chat that belongs to the therapist and the specified patient
+		Chat[] chats = therapist.getChats();
+		Chat chat = null;
+		for(int i = 0; i < chats.length; i++) {
+			
+			//If the patient names match, get the chat for the patient and therapist
+			String patientName = chats[i].getPatient().getFullName();
+			if(targetPatientName.equals(patientName)) {
+				chat = new Chat(chats[i].getPatient(), therapist, database);
+			}
+			
+		}
+		
+		session.setAttribute("isNewMessagingSession", true);
+		session.setAttribute("chat", chat);
+		
+	%>
 	
 	<textarea id="textarea" rows="10" cols="55" name="textarea" onkeyup="addMessage()">Type your message here...
 		</textarea>

@@ -111,7 +111,7 @@
 	<% } %>
 	
 	<!-- Search Therapists -->
-	<form id="searchTherapists" method="post" action="searchTherapists.jsp">
+	<form id="searchTherapists" method="post" action="/CulminatingVer8/searchTherapists">
 		<input id="searchTherapistBox" name="targetTherapist" type="text" required>
 	</form>
 	

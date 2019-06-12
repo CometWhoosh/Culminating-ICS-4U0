@@ -67,7 +67,16 @@ public class AsyncAddMessageServlet extends HttpServlet {
 		    		  Chat chat = patient.getChat();
 		    		  
 		    		  //!@!@! Chat is null because patient and therapist have not accepted the request yet
-		    		  Message message = new Message(chat.getPatient(), chat.getTherapist(), true, messageContent, database);
+		    		  boolean senderIsPatient = false;
+		    		  
+		    		  if(userType.equals("Patient")) {
+		    			  senderIsPatient = true;
+		    		  } else if(userType.equals("Therapist")) {
+		    			  senderIsPatient = false;
+		    		  }
+		    		  
+		    		  Message message = new Message(chat.getPatient(), chat.getTherapist(),
+		    				  senderIsPatient, messageContent, database);
 		    		  chat.addMessage(message);
 		    		  acontext.complete();
 		    		  return;

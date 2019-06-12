@@ -1,9 +1,17 @@
 @charset "ISO-8859-1";
 
-form {
+#goToRequests {
 	
 	position: absolute;
     top: 0px;
     right: 0px;
     
+}
+
+#goToMessenger {
+	
+	position: absolute;
+    top: 0px;
+    left: 0px;
+	
 }

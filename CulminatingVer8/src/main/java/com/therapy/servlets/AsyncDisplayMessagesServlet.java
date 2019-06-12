@@ -23,6 +23,7 @@ import com.mongodb.client.MongoDatabase;
 import com.therapy.entities.Chat;
 import com.therapy.entities.Message;
 import com.therapy.entities.Patient;
+import com.therapy.entities.Therapist;
 
 @WebServlet(urlPatterns={"/asyncDisplayMessages"}, asyncSupported=true)
 public class AsyncDisplayMessagesServlet extends HttpServlet {
@@ -50,7 +51,13 @@ public class AsyncDisplayMessagesServlet extends HttpServlet {
 				
 				//Get the Chat
 				HttpSession session = request.getSession();
-				Chat chat = new Patient((ObjectId)session.getAttribute("id"), database).getChat();
+				Chat chat = null;
+				if(session.getAttribute("userType") == "Patient") {
+					chat = new Patient((ObjectId)session.getAttribute("id"), database).getChat();
+				} else if(session.getAttribute("userType") == "Therapist") {
+					chat = (Chat)session.getAttribute("chat");
+				}
+				
 				
 				//Get the data previously set to the ServletContext
 				ServletContext context = session.getServletContext();

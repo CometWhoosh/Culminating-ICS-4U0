@@ -29,6 +29,7 @@
 		Chat[] chats = therapist.getChats();
 			
 		session.setAttribute("isNewMessagingSession", true);
+		session.removeAttribute("chat");
 		
 	%>
 	
@@ -37,10 +38,10 @@
 
 	<%if(chats != null) { %>
 	
-		<form method="post" action="therapistMessenger.jsp">
+		<form id="goToMessenger" method="post" action="therapistMessenger.jsp">
 			
 			<%for(int i = 0; i < chats.length; i++) { %>
-				<input type="submit" value="<%=chats[i].getPatient().getFullName()%>">
+				<input type="submit" name="patientChats" value="<%=chats[i].getPatient().getFullName()%>">
 			<%}%>
 			
 		</form> 
@@ -49,19 +50,10 @@
 	
 	<!-- Requests -->
 	
-	<form action="therapistRequests.jsp">
+	<form id="goToRequests" action="therapistRequests.jsp">
 		<input type="submit" value="Requests">
 	</form>
 	
-	<!-- Messaging -->
-	<form action="therapistMessenger.jsp">
-	
-	
-	
-		<input type="submit" value="Go to chats">
-		
-		
-	</form>
 	
 </body>
 </html>
