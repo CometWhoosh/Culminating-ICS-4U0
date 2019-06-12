@@ -48,6 +48,7 @@ public abstract class Entity {
 	 */
 	public Document getDocument() throws IllegalStateException {
 		
+		System.out.println("Entity: " + id.toHexString());
 		Document doc = collection.find(eq(id)).first();
 		
 		if(doc == null) {
@@ -68,8 +69,8 @@ public abstract class Entity {
 			id = ObjectId.get();
 			
 			/*
-			 * Try to insert the chat into the collection. If the id 
-			 * already belongs to another chat in the collection, then
+			 * Try to insert the entity into its collection. If the id 
+			 * already belongs to another entity in its collection, then
 			 * make a new id and try again.
 			 */
 			try {

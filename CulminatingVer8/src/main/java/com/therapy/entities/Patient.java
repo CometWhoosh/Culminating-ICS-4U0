@@ -33,21 +33,26 @@ public class Patient extends User {
     	
     }
     
-    /**
-     * 
-     * @return the <code>Request</code> of the <code>Patient</code>, or <code>null</code>
-     * 		   if the <code>Patient</code> does not have one
-     */
-    public Request getRequest() {
-    	return new Request(getDocument().getObjectId("request_id"), database);
-    }
-    
     public Therapist getTherapist() {
-    	return new Therapist(getDocument().getObjectId("therapist_id"), database);
+    	
+    	ObjectId therapistId = getDocument().getObjectId("therapist_id");
+    	
+    	if(therapistId == null) {
+    		return null;
+    	}
+    	
+    	return new Therapist(therapistId, database);
     }
     
     public Chat getChat() {
-    	return new Chat(getDocument().getObjectId("chat_id"), database);
+    	
+    	ObjectId chatId = getDocument().getObjectId("chat_id");
+    	
+    	if(chatId == null) {
+    		return null;
+    	}
+    	
+    	return new Chat(chatId, database);
     }
     
     /**
@@ -66,11 +71,5 @@ public class Patient extends User {
     	collection.findOneAndUpdate(eq(id), Updates.set("chat_id", chat.getId()));
     }
     
-    public void acceptRequest(Request request) {
-    	
-    	setTherapist(request.getTherapist());
-    	setChat(new Chat(this, getTherapist(), database));
-    	
-    }
 
 }

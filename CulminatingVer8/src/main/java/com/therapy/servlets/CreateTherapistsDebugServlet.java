@@ -83,6 +83,7 @@ public class CreateTherapistsDebugServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 		    Integer patientLimit = Integer.valueOf(new Random().nextInt(15));
+		    Integer requestLimit = patientLimit;
 			
 			
 			Document doc = new Document("userType", "Therapist")
@@ -94,7 +95,8 @@ public class CreateTherapistsDebugServlet extends HttpServlet {
 			.append("can_receive_requests", canReceiveRequests)
 			.append("password_hash", hash)
 			.append("salt", salt)
-			.append("patient_limit", patientLimit);
+			.append("patient_limit", patientLimit)
+			.append("request_limit", requestLimit);
 			
 			boolean isDuplicate = false;
 			ObjectId id = null;

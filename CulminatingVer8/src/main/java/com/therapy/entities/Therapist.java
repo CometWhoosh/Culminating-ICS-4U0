@@ -66,6 +66,7 @@ public class Therapist extends User {
     	try {
     		
 	    	ObjectId[] patientIds = doc.get("message_ids", ObjectId[].class);
+	    	//!@!@ Look at lines 137 - 140 in User class for solution
 	    
 	    	patients = null;
 	    	if(patientIds != null) {

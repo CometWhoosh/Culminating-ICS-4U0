@@ -168,6 +168,7 @@ public class Request extends Entity{
         
     }
     
+    /*
     public boolean isDenied() {
     	
     	Boolean patientDenied = getDocument().getBoolean("patient_denied", false);
@@ -180,6 +181,7 @@ public class Request extends Entity{
     	return false;
     	
     }
+    */
     
     public boolean patientAccepted() {
     	return getDocument().getBoolean("patient_accepted", false);
@@ -195,18 +197,48 @@ public class Request extends Entity{
     public void accept(Class<? extends User> userClass) throws IllegalStateException {
     	
     	if(userClass == Patient.class) {
-    		collection.findOneAndUpdate(eq(id), Updates.set("patient_accepted", Boolean.valueOf(true)));
+    		
+    		if(therapistAccepted()) {
+    			
+    			collection.findOneAndUpdate(eq(id), Updates.set("patient_accepted", Boolean.valueOf(true)));
+        		Patient patient = getPatient();
+        		Therapist therapist = getTherapist();
+        		
+        		patient.setTherapist(therapist);
+            	patient.setChat(new Chat(patient, therapist, database));
+            	
+            	therapist.addPatient(patient);
+    			
+    		} else {
+    			throw new IllegalStateException("Therapist must accept first before patient");
+    		}
+    		
+    		
     	} else if(userClass == Therapist.class) {
-    		collection.findOneAndUpdate(eq(id), Updates.set("Therapist_accepted", Boolean.valueOf(true)));
+    		
+    		if(!patientAccepted()) {
+    			collection.findOneAndUpdate(eq(id), Updates.set("Therapist_accepted", Boolean.valueOf(true)));
+    		} else {
+    			throw new IllegalStateException("Therapist must accept first before patient");
+    		}
+    		
     	}
     
     }
     
-    void deny() {
-    	
-    	collection.findOneAndUpdate(eq(id), Updates.set("is_denied", Boolean.valueOf(true)));
+    /**
+     * Denies the request. The request is removed from the database.
+     */
+    public void deny() {
+    	remove();
+    }
+    
+    /**
+     * Removes the request from the database. Should be called after
+     * either accepting or denying the request.
+     */
+    public void remove() {
     	collection.findOneAndDelete(eq(id));
-    	
     }
     
 }

@@ -163,7 +163,7 @@ public class SignUpServlet extends HttpServlet {
 				//response.sendRedirect(projectPath + "/getTherapists");
 				return;
 			} else {
-				response.sendRedirect(projectPath + "/therapistHomepage.html");
+				request.getRequestDispatcher("/therapistHomepage.jsp").forward(request, response);
 				return;
 			}
 			

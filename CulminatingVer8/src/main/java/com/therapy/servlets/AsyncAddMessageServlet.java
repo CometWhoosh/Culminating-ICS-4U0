@@ -40,6 +40,7 @@ public class AsyncAddMessageServlet extends HttpServlet {
 	    		  MongoClient client = Util.getMongoClient();
 	    		  MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
 	    		  
+	    		  /* OLD WAY OF DOING THINGS
 	    		  //Get message from cookie
 	    		  String messageContent = null;
 	    		  Cookie[] cookies = request.getCookies();
@@ -50,6 +51,10 @@ public class AsyncAddMessageServlet extends HttpServlet {
 	    			  }
 	    			  
 	    		  }
+	    		  */
+	    		  
+	    		  //Get message from POST request
+	    		  String messageContent = request.getParameter("message");
 	    		  
 	    		  System.out.println("Message: " + messageContent);
 	    		  

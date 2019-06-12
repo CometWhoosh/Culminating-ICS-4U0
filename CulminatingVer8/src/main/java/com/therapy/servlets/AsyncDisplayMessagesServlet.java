@@ -48,6 +48,7 @@ public class AsyncDisplayMessagesServlet extends HttpServlet {
 				MongoClient client = new MongoClient(/*...*/);
 				MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
 				
+				//Get the Chat
 				HttpSession session = request.getSession();
 				Chat chat = new Patient((ObjectId)session.getAttribute("id"), database).getChat();
 				

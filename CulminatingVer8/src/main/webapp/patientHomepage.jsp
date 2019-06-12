@@ -5,6 +5,8 @@
 <head>
 	<meta charset="ISO-8859-1">
 	<title>Homepage</title>
+	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
+	<link rel="stylesheet" type="text/css" href="patientHomepage.css">
 </head>
 <body>
 	
@@ -16,20 +18,17 @@
 	<%@ page import="com.therapy.servlets.Util" %>
 	<%@ page import="com.therapy.entities.*" %>
 	
-	<%@ page import="java.util.Arrays" %>
-	
-	
-	
 	<%
+		
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
 		
 		Patient patient = new Patient((ObjectId)session.getAttribute("id"), database);
-		Therapist therapist = patient.getTherapist();
+		Chat chat = patient.getChat();
 		
+	
+		//TODO: Make the chat only visible if the patient actually HAS a chat
 		session.setAttribute("isNewMessagingSession", true);
-		
-		//request.getRequestDispatcher("/asyncDisplayMessages").include(request, response);
 		
 	%>
 	
@@ -40,46 +39,102 @@
 		<!-- therapist div -->
 	</div>
 	
-	<script type="text/javascript">
-		
-		function loadNewMessages() {
-			
-			  var xhttp = new XMLHttpRequest();
-			  
-			  xhttp.onreadystatechange = function() {
-			    if (this.readyState == 4 && this.status == 200) {
-			      
-			      //Get the JSON object	
-			      var newMessages = JSON.parse(this.responseText);
-			      
-			      //display
-			      for(i = 0; i < newMessages.length; i++) {
-				      var ptag = document.createElement("p");
-					  var message = document.createTextNode(newMessages[i][0]);
-					  ptag.appendChild(message);
-					  document.getElementById("otherUserMessageDiv").appendChild(ptag);
-			      }
-				  
-			      //Recursively call the function
-			      loadNewMessages();
-			      
-			    }
-			  };
-			  
-			  xhttp.open("POST", "/asyncDisplayMessages", true);
-			  xhttp.send(); 
-	
-		}
-		
-	</script>
-	
 	<textarea id="textarea" rows="10" cols="55" name="textarea" onkeyup="addMessage()">Type your message here...
-		</textarea>
+			</textarea>
 	
-	<script type="text/javascript">
+	<%
+		if(chat == null) {
+			out.println("<p>After accepting a therapist, your will be able to message theme here</p>");
+		} else {
+	%>
+	
+		<!-- Display any new messages -->
+		<script type="text/javascript">
+			
+			function loadNewMessages() {
+				
+				  var xhttp = new XMLHttpRequest();
+				  
+				  xhttp.onreadystatechange = function() {
+				    if (this.readyState == 4 && this.status == 200) {
+				      
+				      //Get the JSON object	
+				      var newMessages = JSON.parse(this.responseText);
+				      
+				      //display
+				      for(i = 0; i < newMessages.length; i++) {
+					      var ptag = document.createElement("p");
+						  var message = document.createTextNode(newMessages[i][0]);
+						  ptag.appendChild(message);
+						  document.getElementById("otherUserMessageDiv").appendChild(ptag);
+				      }
+					  
+				      //Recursively call the function
+				      loadNewMessages();
+				      
+				    }
+				  };
+				  
+				  xhttp.open("POST", "/asyncDisplayMessages", true);
+				  xhttp.send(); 
+		
+			}
+			
+			function addMessage() {
+				
+				//Get key that was released
+				var key = window.event.keyCode;
+				
+				var patientMessage = document.getElementById("textarea").innerHTML;
+				document.getElementById("textarea").innerHTML = "";
+				
+			    // If ENTER was pressed
+			    if (key === 13) {
+			    	
+			    	$.post("/CulminatingVer8/addMessageAsync",
+			    			{
+			    				message : patientMessage
+			    			});
+			    	
+			    }
+				
+			}
+			
+			loadNewMessages();
+			
+		</script>
+	
+	
 	
 		
 	
+	<% } %>
+	
+	<!-- Search Therapists -->
+	<form id="searchTherapists" method="post" action="searchTherapists.jsp">
+		<input id="searchTherapistBox" name="targetTherapist" type="text" required>
+	</form>
+	
+	<!-- Requests -->
+	<form id="requests" action="patientRequests.jsp">
+		<input type="submit" value="Requests">
+	</form>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	<!-- OLD WAY OF DOING THINGS
 		function addMessage() {
 			
 			var key = window.event.keyCode;
@@ -95,6 +150,7 @@
 				var message = document.getElementById("textarea").innerHTML;
 				document.getElementById("textarea").innerHTML = "";
 				document.cookie="message=" + message;
+				
 				//AJAX call
 				var xhttp = new XMLHttpRequest();
 			    xhttp.open("POST", "/CulminatingVer8/addMessageAsync", true);
@@ -121,14 +177,12 @@
 		        }
 		    }
 		}
+		
+		-->
 	
 	</script>
 	
-	<!-- Requests -->
 	
-	<form action="/patientRequests.jsp">
-		<input type="submit" value="Requests">
-	</form>
 	
 	
 	

@@ -123,9 +123,6 @@ public abstract class User extends Entity{
     	collection.findOneAndUpdate(eq(id), Updates.push("request_ids", request.getId()));
     }
     
-    public void removeRequest(Request request) {
-    	collection.findOneAndUpdate(eq(id), Updates.pull("request_ids", request.getId()));
-    }
     
     /**
      * 
@@ -133,14 +130,15 @@ public abstract class User extends Entity{
      */
     public Request[] getRequests() {
     	
-    	
-    	
     	Document doc = getDocument();
     	Request[] requests = null;
     	try {
     		
-	    	ObjectId[] requestIds = (ObjectId[])doc.get("request_ids", new ArrayList<ObjectId>().getClass()).toArray();
-	    	
+	    	//ObjectId[] requestIds = (ObjectId[])doc.get("request_ids", new ArrayList<ObjectId>().getClass()).toArray();
+    		final Class<? extends List> listClass = new ArrayList<ObjectId>().getClass();
+    		List<ObjectId> idsAsList = doc.get("request_ids", listClass);
+    		ObjectId[] requestIds = idsAsList.toArray(ObjectId[]::new);
+    		
 	    	requests = null;
 	    	if(requestIds != null) {
 	    		

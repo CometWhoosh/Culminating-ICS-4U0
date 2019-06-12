@@ -9,6 +9,9 @@
 </head>
 <body>
 	
+	<!-- TODO: There shouldn't be an option to accept a request while it is still pending on the 
+		 	   therapist to accept it -->
+	
 	<%@ page import="com.mongodb.MongoClient" %>
 	<%@ page import="com.mongodb.client.MongoDatabase" %>
 	
@@ -42,32 +45,58 @@
 		<p><%=requests[i].getTherapist().getFullName() + ":"%></p>
 		
 		<%
-		
+			String id = "p" + i;
 			if(requests[i].therapistAccepted()) {
-				out.print("<p style=\"background-color:lightblue\">therapist Accepted!</p>");
+				out.print("<p style=\"background-color:lightblue\" id=\"" + id + "\">therapist Accepted!</p>");
 			} else {
-				String id = "p" + i;
+				
 				out.print("<p style=\"background-color:grey\" id=\"" + id + "\">Pending</p>");
 			}
 		
+		 
+		
+		//If the therapist accepted, then display an option for the patient to accept
+		if(requests[i].therapistAccepted()) { 
+			out.print("<button type=\"button\" value=\""
+					+ requests[i].getId().toHexString() + ">Accept</button>");
+		 } 
+		 
 		%>
-		
-		<button id="button<%=i%>" type="button" value="<%=requests[i].getId().toHexString()%>">Accept</button>
-		
+		 
+		 <!--  TRY THE NEW WAY FIRST
 		<script type="text/javascript">
-			//In the post request, patient should accept() the request
+			
 			$("button").click(function(event) {
 				$.post("/CulminatingVer8/asyncAcceptRequest", 
 						{ 
-							id: "<%=requests[i].getId().toHexString()%>" //the _id of the request as a hex string
+							id: "<%//=requests[i].getId().toHexString()%>" 
 						},
 						function() {
-							document.getElementById("<%="p" + i%>").style.backgroundColor = "grey"; //change the colour of the accept button when done
+							document.getElementById("<%//="p" + i%>").style.backgroundColor = "grey"; 
 						});
 			});
 		</script>
+		-->
 		
 	<% } %>
+	
+	<script type="text/javascript">
+		
+			$("button").click(function(event) {
+				$.post("/CulminatingVer8/asyncAcceptRequest", 
+						{ 
+							id: this.value 
+						},
+						function() 
+							//Replace the accept button with a sign that says "accepted"
+							var pendingSign = document.createElement("p");
+							acceptedSign.innherHTML = "Accepted";
+							acceptedSign.style.backgroundColor = "grey";
+							this.replaceWith(acceptedSign);
+						});
+			});
+			
+		</script>
 	
 </body>
 </html>
