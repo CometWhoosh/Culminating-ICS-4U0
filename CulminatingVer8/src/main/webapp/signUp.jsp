@@ -108,20 +108,7 @@
 	
 	%>
 	
-	<%
-		String string = "Hi";
-		out.println("hi");
-	%>
 	
-	<script type="text/javascript">
-		function o() {
-			
-			<%
-				out.println("hi");
-			%>
-			
-		}
-	</script>	
 	
 	
 	<p>Already have an account?<p>

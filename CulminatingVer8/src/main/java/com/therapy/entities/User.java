@@ -127,4 +127,35 @@ public abstract class User extends Entity{
     	collection.findOneAndUpdate(eq(id), Updates.pull("request_ids", request.getId()));
     }
     
+    /**
+     * 
+     * @return an array of the requests.
+     */
+    public Request[] getRequests() {
+    	
+    	
+    	
+    	Document doc = getDocument();
+    	Request[] requests = null;
+    	try {
+    		
+	    	ObjectId[] requestIds = (ObjectId[])doc.get("request_ids", new ArrayList<ObjectId>().getClass()).toArray();
+	    	
+	    	requests = null;
+	    	if(requestIds != null) {
+	    		
+	    		requests = Arrays.stream(requestIds)
+	    	    		.map(e -> new Request(e, database))
+	    	    		.toArray(Request[]::new);
+	    		
+	    	}
+	    	
+    	} catch(NullPointerException e) {
+    		
+    	}
+    	
+    	return requests;
+        
+    }
+    
 }

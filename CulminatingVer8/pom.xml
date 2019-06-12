@@ -67,8 +67,14 @@
 	    <version>1.1.4</version>
 	</dependency>
 	
+	<!-- https://mvnrepository.com/artifact/org.webjars/jquery -->
+	<dependency>
+	    <groupId>org.webjars</groupId>
+	    <artifactId>jquery</artifactId>
+	    <version>3.4.1</version>
+	</dependency>
+
 	
-        
   </dependencies>
   <build>
     <finalName>CulminatingVer8</finalName>

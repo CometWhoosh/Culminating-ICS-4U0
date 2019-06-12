@@ -26,17 +26,15 @@
 		
 		Patient patient = new Patient((ObjectId)session.getAttribute("id"), database);
 		Therapist therapist = patient.getTherapist();
-		Chat chat = patient.getChat();
 		
 		session.setAttribute("isNewMessagingSession", true);
-		session.setAttribute("chat", chat);
 		
 		//request.getRequestDispatcher("/asyncDisplayMessages").include(request, response);
 		
 	%>
 	
 	
-	
+	<!-- Messaging -->
 	
 	<div id="otherUserMessageDiv">
 		<!-- therapist div -->
@@ -55,7 +53,7 @@
 			      var newMessages = JSON.parse(this.responseText);
 			      
 			      //display
-			      for(int i = 0; i < newMessages.length; i++) {
+			      for(i = 0; i < newMessages.length; i++) {
 				      var ptag = document.createElement("p");
 					  var message = document.createTextNode(newMessages[i][0]);
 					  ptag.appendChild(message);
@@ -126,9 +124,11 @@
 	
 	</script>
 	
+	<!-- Requests -->
 	
-	
-	
+	<form action="/patientRequests.jsp">
+		<input type="submit" value="Requests">
+	</form>
 	
 	
 	

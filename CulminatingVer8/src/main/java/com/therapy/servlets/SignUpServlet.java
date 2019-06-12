@@ -151,7 +151,7 @@ public class SignUpServlet extends HttpServlet {
 			
 			HttpSession session = request.getSession();
 			session.setAttribute("id", id);
-			session.setAttribute("user_type", userType);
+			session.setAttribute("userType", userType);
 			session.setMaxInactiveInterval(-1);
 			
 			//Checking the session id

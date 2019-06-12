@@ -157,8 +157,8 @@ public class Request extends Entity{
      */
     public boolean isAccepted() {
    
-    	Boolean patientAccepted = getDocument().getBoolean("patient_accepted", false);
-    	Boolean therapistAccepted = getDocument().getBoolean("therapist_accepted", false);
+    	boolean patientAccepted = getDocument().getBoolean("patient_accepted", false);
+    	boolean therapistAccepted = getDocument().getBoolean("therapist_accepted", false);
     	
     	if(patientAccepted && therapistAccepted) {
     		return true;
@@ -181,6 +181,23 @@ public class Request extends Entity{
     	
     }
     
+    public boolean patientAccepted() {
+    	return getDocument().getBoolean("patient_accepted", false);
+    }
+    
+    public boolean therapistAccepted() {
+    	return getDocument().getBoolean("patient_accepted", false);
+    }
+    
+    public boolean patientDenied() {
+    	return getDocument().getBoolean("patient_denied", false);
+    }
+    
+    public boolean therapistDenied() {
+    	return getDocument().getBoolean("patient_denied", false);
+    }
+    
+    
     /**
      * Accepts the request. Should only be used by a <code>Therapist</code> 
      * object.
@@ -192,5 +209,6 @@ public class Request extends Entity{
     void deny() {
     	collection.findOneAndUpdate(eq(id), Updates.set("is_denied", Boolean.valueOf(true)));
     }
+    
     
 }

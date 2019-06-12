@@ -38,7 +38,6 @@ public class LoginServlet extends HttpServlet {
 	private static final String serverIpAddress = "192.168.56.1"; 
 	private static final String serverPort = "8080";
 	private static final String projectPath = "http://" + serverIpAddress + ":" + serverPort + "/CulminatingVer8";
-	
 	/**
 	 * Handles the form data. If the email exists in the database, then
 	 * the users login information is authenticated. If the password 
@@ -106,7 +105,7 @@ public class LoginServlet extends HttpServlet {
 			
 			HttpSession session = request.getSession();
 			session.setAttribute("id", userDoc.getObjectId("_id"));
-			session.setAttribute("user_type", userType);
+			session.setAttribute("userType", userType);
 			session.setMaxInactiveInterval(-1);
 			
 			if(userType.equals("Patient")) {
