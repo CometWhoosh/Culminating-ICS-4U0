@@ -1,31 +1,27 @@
 package com.therapy.entities;
 
-import static com.mongodb.client.model.Filters.eq;
 
-import org.bson.Document;
-import org.bson.types.Binary;
 import org.bson.types.ObjectId;
 
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Updates;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * This class represents a patient. Since it is one of the two types of users,
- * it extends the User class. It has a field for the list of requests the 
- * patient has sent.
+ * it extends the <code>User</code> class.
  *
  * @author Yousef Bulbulia
  */
 public class Patient extends User {
 	
-    /**
-     * Creates a new <code>Patient</code> that initializes it's data using the data
-     * from the database using the passed id.
-     * 
-     * @param id       the id of the <code>Patient</code>
-     * @param database the database that the <code>Patient</code> belongs to
-     */
+	/**
+	 * Creates a new <code>User</code> belonging to the given database with
+	 * the passed <code>_id</code> field.
+	 * 
+	 * @param id       the <code>_id</code> field of this <code>Patient</code>
+	 * @param database the database this <code>Patient</code> belongs to
+	 */
     public Patient(ObjectId id, MongoDatabase database) {
     	
     	super(id,database);
@@ -33,6 +29,11 @@ public class Patient extends User {
     	
     }
     
+    /**
+     * 
+     * @return the <code>Therapist</code> of this <code>Patient</code>, or null
+     * 		   if the <code>Patient</code> does not have one
+     */
     public Therapist getTherapist() {
     	
     	ObjectId therapistId = getDocument().getObjectId("therapist_id");
@@ -44,6 +45,11 @@ public class Patient extends User {
     	return new Therapist(therapistId, database);
     }
     
+    /**
+     * 
+     * @return the <code>Chat</code> of this <code>Patient</code>, or null
+     * 		   if the <code>Patient</code> does not have one
+     */
     public Chat getChat() {
     	
     	ObjectId chatId = getDocument().getObjectId("chat_id");

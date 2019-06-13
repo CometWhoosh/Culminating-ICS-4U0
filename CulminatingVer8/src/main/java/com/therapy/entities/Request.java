@@ -207,7 +207,6 @@ public class Request extends Entity{
     		
     		if(therapistAccepted()) {
     			
-    			
     			Patient patient = getPatient();
         		Therapist therapist = getTherapist();
         		
@@ -222,16 +221,13 @@ public class Request extends Entity{
             	therapist.removeRequest(this);
             	
     			collection.findOneAndUpdate(eq(id), Updates.set("patient_accepted", true));
-    			collection.findOneAndDelete(eq(id));
-    			
-        		
+    			remove();
     			
     		} else {
     			throw new IllegalStateException("Therapist must accept first before patient");
     		}
     		
-    		
-    	} else if(userClass == Therapist.class) {
+    	} else {
     		
     		if(!patientAccepted()) {
     			collection.findOneAndUpdate(eq(id), Updates.set("therapist_accepted", true));
