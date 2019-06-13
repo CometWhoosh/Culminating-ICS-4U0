@@ -17,10 +17,15 @@ import com.mongodb.client.model.Updates;
 
 /**
  * This class represents a request that a patient would send to a therapist in 
- * order to be accepted as one of their patients. It has fields for the patient
- * and therapist that are associated with the request, the status of the request
- * (if it is accepted or not), and the summary written by the sender 
- * (the patient) describing their situation.
+ * order to be accepted as one of their patients. First, the therapist can
+ * accept or deny the patient. If they deny the patient, then the request is
+ * removed from the database. If they accept, then the patient has the option
+ * to accept or deny the request. If they deny, the request is removed from the
+ * database. If they accept, then the therapist would take on the patient and
+ * the request would be removed from the database.
+ * 
+ * A <code>Request</code> has an optional summary, which is a body of text that
+ * the patient writes that describes their problem(s).
  *
  * @author Yousef Bulbulia
  * 
@@ -28,14 +33,11 @@ import com.mongodb.client.model.Updates;
 public class Request extends Entity{
 	
 	/**
-	 * Creates a new <code>Request</code> with a specified <code>Patient</code> and
-	 * <code>Therapist</code>, where the other fields are read in from the database
-	 * using the given _id MonogoDB field.
+	 * Creates a new <code>Request</code> belonging to the given database with
+	 * the passed <code>_id</code> field.
 	 * 
-	 * @param patient   the patient sending this request
-	 * @param therapist the therapist receiving this request
-	 * @param id        the _id field that MongoDB will use
-	 * @param database  the database this request belongs to
+	 * @param id       the <code>_id</code> field of this <code>Request</code>
+	 * @param database the database this <code>Request</code> belongs to
 	 */
 	public Request(ObjectId id, MongoDatabase database) {
 	    	
@@ -45,9 +47,11 @@ public class Request extends Entity{
     }
 	
 	/**
-	 * Creates a new <code>Request</code> with a unique _id field, witht the specified
-	 * <code>Patient</code> and <code>Therapist</code>. After creation, the 
-	 * <code>Chat</code> is inserted into the <code>chats</code> collection.
+	 * Creates a new <code>Request</code> with a unique _id field and the 
+	 * specified <code>Patient</code> and <code>Therapist</code>. If this 
+     * constructor is used for <code>Request</code> objects that have already 
+     * been created in the database, an <code>IllegalStateException<code> will 
+     * be thrown.
 	 *  
 	 * @param patient   the patient sending this request
 	 * @param therapist the therapist receiving this request
@@ -57,10 +61,12 @@ public class Request extends Entity{
 			throws IllegalStateException {
 		
 		super(database);
-		
-		//Check if a request for these users already exists
 		collection = database.getCollection("requests");
 		
+		/*
+    	 * If there is already a Request for these Users, then throw an 
+    	 * IllegalStateException
+    	 */
 		ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
     	Document requestDoc = collection.find(
@@ -74,7 +80,6 @@ public class Request extends Entity{
     	}
     	
     	
-		//initialize the class fields
     	id = getUniqueId();
     	collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
     	collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
@@ -82,9 +87,11 @@ public class Request extends Entity{
 	}
 	
 	/**
-	 * Creates a new <code>Request</code> with a unique _id field, with the specified
-	 * <code>Patient</code>, <code>Therapist</code, and summary. After creation, the 
-	 * <code>Chat</code> is inserted into the <code>chats</code> collection.
+	 * Creates a new <code>Request</code> with a unique _id field and the 
+	 * specified <code>Patient</code>, <code>Therapist</code>, and summary. If 
+	 * this constructor is used for <code>Request</code> objects that have 
+	 * already been created in the database, an 
+	 * <code>IllegalStateException<code> will be thrown.
 	 *  
 	 * @param patient   the patient sending this request
 	 * @param therapist the therapist receiving this request
@@ -95,10 +102,12 @@ public class Request extends Entity{
 			throws IllegalStateException {
 		
 		super(database);
-		
-		//Check if a request for these users already exists
 		collection = database.getCollection("requests");
 		
+		/*
+    	 * If there is already a Request for these Users, then throw an 
+    	 * IllegalStateException
+    	 */
 		ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
     	Document requestDoc = collection.find(
@@ -112,7 +121,6 @@ public class Request extends Entity{
     	}
     	
     	
-		//initialize the class fields
     	id = getUniqueId();
     	
     	collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
@@ -128,7 +136,8 @@ public class Request extends Entity{
     
     /**
      * 
-     * @return the patient associated with the request.
+     * @return the <code>Patient</code> associated with the 
+     * 		   <code>Request</code>
      */
     public Patient getPatient() {
     	return new Patient(getDocument().getObjectId("patient_id"), database);
@@ -136,7 +145,8 @@ public class Request extends Entity{
     
     /**
      * 
-     * @return the therapist associated with the request.
+     * @return the <code>Therapist</code> associated with the 
+     * 		   <code>Request</code>
      */
     public Therapist getTherapist() {
     	return new Therapist(getDocument().getObjectId("therapist_id"), database);
@@ -144,7 +154,7 @@ public class Request extends Entity{
     
     /**
      * 
-     * @return the summary associated with the request.
+     * @return the summary associated with the<code>Request</code>
      */
     public String getSummary() {
     	return getDocument().getString("summary");
@@ -152,8 +162,8 @@ public class Request extends Entity{
     
     /**
      * 
-     * @return a boolean value which, if <code>true</code>, indicates that the 
-     *  request is accepted.
+     * @return a <code>boolean</code> value which, if <code>true</code>, 
+     * 		   indicates that the <code>Request</code> is accepted.
      */
     public boolean isAccepted() {
    
@@ -168,31 +178,28 @@ public class Request extends Entity{
         
     }
     
-    /*
-    public boolean isDenied() {
-    	
-    	Boolean patientDenied = getDocument().getBoolean("patient_denied", false);
-    	Boolean therapistDenied = getDocument().getBoolean("therapist_denied", false);
-    	
-    	if(patientDenied || therapistDenied) {
-     		return true;
-     	}
-    	
-    	return false;
-    	
-    }
-    */
-    
+    /**
+     * 
+     * @return a <code>boolean</code> value which, if <code>true</code>, 
+     * 		   indicates that the patient accepted the <code>Request</code>
+     */
     public boolean patientAccepted() {
     	return getDocument().getBoolean("patient_accepted", false);
     }
     
+    /**
+     * 
+     * @return a <code>boolean</code> value which, if <code>true</code>, 
+     * 		   indicates that the patient accepted the <code>Request</code>.
+     */
     public boolean therapistAccepted() {
     	return getDocument().getBoolean("therapist_accepted", false);
     }
     
     /**
-     * Accepts the request. 
+     * Accepts the code>Request</code>.
+     * 
+     * @param userClass the class of the <code>User</code> calling the method.
      */
     public void accept(Class<? extends User> userClass) throws IllegalStateException {
     	
@@ -237,15 +244,16 @@ public class Request extends Entity{
     }
     
     /**
-     * Denies the request. The request is removed from the database.
+     * Denies the <code>Request</code>. The <code>Request</code> is removed 
+     * from the database.
      */
     public void deny() {
     	remove();
     }
     
     /**
-     * Removes the request from the database. Should be called after
-     * either accepting or denying the request.
+     * Removes the <code>Request</code> from the database. This method should 
+     * be called after either accepting or denying the <code>Request</code>.
      */
     public void remove() {
     	collection.findOneAndDelete(eq(id));

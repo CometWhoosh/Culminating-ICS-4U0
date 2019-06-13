@@ -1,42 +1,34 @@
 package com.therapy.entities;
 
 
-import static com.mongodb.client.model.Filters.*;
-
-import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Deque;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
 
-import com.mongodb.MongoException;
-import com.mongodb.MongoWriteConcernException;
-import com.mongodb.MongoWriteException;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Updates;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
- * This class represents a chat between a patient and therapist. It has fields
- * to identify the patient and therapist that it belongs to, as well as a
- * <code>List</code> that contains all of the messages sent between users. 
+ * This class represents a chat between a patient and therapist.
  *
  * @author Yousef Bulbulia
  * 
  */
 public class Chat extends Entity{
     
-    
     /**
-     * Creates a new <code>Chat</code> with a unique _id field, and no messages. 
-     * After creation, the <code>Chat</code> is inserted into the <code>chats</code> 
-     * collection. This is meant for chats that have not been created in the database
-     * yet.
+     * Creates a new <code>Chat</code> with a unique _id field, and no 
+     * messages. After creation, the <code>Chat</code> is inserted into the 
+     * <code>chats</code> collection. This is meant for <code>Chat</code> 
+     * objects that have not been created in the database yet. If this 
+     * constructor is used for <code>Chat</code> objects that have already been
+     * created in the database, an <code>IllegalStateException<code> will be 
+     * thrown.
      * 
      * @param patient   the patient using this chat
      * @param therapist the therapist using this chat
@@ -44,35 +36,37 @@ public class Chat extends Entity{
      */
     public Chat(Patient patient, Therapist therapist, MongoDatabase database) throws IllegalStateException {
     	
-    	
     	super(database);
-    	System.out.println("Chat(): 1");
     	collection = database.getCollection("chats");
     	
-    	//If there is already a <code>Chat</code> for these users, then throw <code>IllegalStateException</code>
-    	System.out.println("Chat(): 2");
+    	/*
+    	 * If there is already a Chat for these Users, then throw an 
+    	 * IllegalStateException
+    	 */
     	ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
-    	System.out.println("Chat(): 3");
     	Document doc = collection.find(
     			and(
     					eq("patient_id", patientId), eq("therapist_id", therapistId)
     			)).first();
-    	System.out.println("Chat(): 4");
+    	
     	if(doc != null) {
     		throw new IllegalStateException("This constructor is only for Chats that"
     				+ "have not been created in the database yet");
     	}
     	
-    	System.out.println("Chat(): 5");
     	id = getUniqueId();
-    	System.out.println("Chat(): 6");
 		collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
-		System.out.println("Chat(): 7");
 		collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
-		System.out.println("Chat(): 8");
     }
     
+    /**
+	 * Creates a new <code>Chat</code> belonging to the given database with
+	 * the passed <code>_id</code> field.
+	 * 
+	 * @param id       the <code>_id</code> field of this <code>Chat</code>
+	 * @param database the database this <code>Chat</code> belongs to
+	 */
     public Chat(ObjectId id, MongoDatabase database) {
     	
     	super(id, database);
@@ -82,7 +76,7 @@ public class Chat extends Entity{
     
     /**
      * 
-     * @return the patient associated with this chat.
+     * @return the patient associated with this <code>Chat</code>
      */
     public Patient getPatient() {
     	
@@ -93,7 +87,7 @@ public class Chat extends Entity{
     
     /**
      * 
-     * @return the therapist associated with this chat.
+     * @return the therapist associated with this <code>Chat</code>
      */
     public Therapist getTherapist() {
     	
@@ -104,7 +98,9 @@ public class Chat extends Entity{
     
     /**
      * 
-     * @return the <code>List</code> of messages that make up the chat.
+     * @return a <code>List</code> of <code>Message</code> objects that make up 
+     *         the <code>Chat</code>. If there are no messages in the
+     * 		   <code>Chat</code>, then this method returns null.
      */
     public Message[] getMessages() {
     	
@@ -112,6 +108,7 @@ public class Chat extends Entity{
     	
     	ObjectId[] messageIds = doc.get("message_ids", ObjectId[].class);
     	
+    	//Map the ObjectIds to the Message objects they belong to
     	Message[] messages = null;
     	if(messageIds != null) {
     		messages = Arrays.stream(messageIds)
@@ -123,14 +120,15 @@ public class Chat extends Entity{
         
     }
     
-    
-    
     /**
-     * Retrieves a specified number of the most recent messages. The newest
-     * <code>Message</code>s are the end of the returned array, while the
-     * oldest <code>Message</code>s are at the beginning.
+     * Retrieves an array of the most recent <code>Message</code> objects with 
+     * a length determined by <code>numberOfMessages</code>. The newest
+     * <code>Message</code> objects are the end of the returned array, while 
+     * the oldest are at the beginning. If there are no messages in the
+     * <code>Chat</code>, then this method returns null.
      * 
-     * @param numberOfMessages the number of messages to return
+     * @param numberOfMessages the number of <code>Message</code> objects to 
+     * 						   return
      */
     public Message[] getPreviousMessages(int numberOfMessages) throws NoSuchElementException {
     	
@@ -138,22 +136,38 @@ public class Chat extends Entity{
     	
     	ObjectId[] messageIds = doc.get("message_ids", ObjectId[].class);
     	
+    	//Map the ObjectIds to the Message objects they belong to
     	Message[] messages = Arrays.stream(messageIds)
     		.map(e -> new Message(e, database))
     		.toArray( Message[]::new);
     	
+    	/*
+    	 * Reverse the order of messages so that the Messages are 
+    	 * in chronological order
+    	 */
     	Message[] previousMessages = null;
     	if(messages != null) {
+    		
 	    	previousMessages = new Message[numberOfMessages];
-	    	for(int i = numberOfMessages - 1, j = messages.length - 1; i < numberOfMessages && i < messages.length; i--, j--) {
+	    	for(int i = numberOfMessages - 1, j = messages.length - 1; 
+	    			i < numberOfMessages && i < messages.length; i--, j--) {
 	    		previousMessages[i] = messages[j];
 	    	}
+	    	
     	}
     	
         return previousMessages;
         
     }
     
+    /**
+     * Retrieves an array of <code>Message</code> objects that were inserted
+     * into the database since <code>message</code> was inserted.
+     * 
+     * @param message the <code>Message</code> to use as reference
+     * @return        an array of the <code>Message</code> objects that were 
+     * 	              inserted into the database since <code>message</code>
+     */
     public Message[] getMessagesSince(Message message) {
     	
     	List<Message> messages = Arrays.asList(getPreviousMessages(100));
@@ -163,9 +177,10 @@ public class Chat extends Entity{
     }
     
     /**
-     * Adds a message to the <code>Chat</code>
+     * Adds a <code>Message</code> to the <code>Chat</code>
      * 
-     * @param message the message to be added to the chat.
+     * @param message the <code>Message</code> to be added to the 
+     * 	              <code>Chat</code>.
      */
     public void addMessage(Message message) {
         collection.findOneAndUpdate(eq(id), Updates.push("message_ids", message.getId()));
