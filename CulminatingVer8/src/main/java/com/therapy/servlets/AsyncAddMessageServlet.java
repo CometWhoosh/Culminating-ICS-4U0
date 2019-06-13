@@ -5,7 +5,6 @@ import java.io.IOException;
 import javax.servlet.AsyncContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,83 +17,67 @@ import com.mongodb.client.MongoDatabase;
 import com.therapy.entities.Chat;
 import com.therapy.entities.Message;
 import com.therapy.entities.Patient;
-import com.therapy.entities.Therapist;
-import com.therapy.entities.User;
 
+/**
+ * This class is an asynchronous servlet that adds the <code>Message</code>
+ * specified in the HTTP request parameter <code>message</code> to the
+ * <code>Chat</code> that is currently in use.
+ * 
+ * @author Yousef Bulbulia
+ *
+ */
 @WebServlet(urlPatterns={"/addMessageAsync"}, asyncSupported=true)
 public class AsyncAddMessageServlet extends HttpServlet {
 
-
+	/**
+	 * Adds the <code>Message</code> specified in the HTTP request parameter 
+	 * <code>message</code> to the <code>Chat</code> that is currently in use.
+	 */
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
 		response.setContentType("text/html;charset=UTF-8");
-	      final AsyncContext acontext = request.startAsync();
-	      acontext.start(new Runnable() {
+	    final AsyncContext acontext = request.startAsync();
+	    acontext.start(new Runnable() {
 	    	  
-	    	  public void run() {
+	    	public void run() {
+	    		
+	    		MongoClient client = Util.getMongoClient();
+	    		MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
 	    		  
-	    		  System.out.println("Add messages servlet happened!");
+	    		//Get message from POST request
+	    		String messageContent = request.getParameter("message");
 	    		  
-	    		  MongoClient client = Util.getMongoClient();
-	    		  MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
-	    		  
-	    		  /* OLD WAY OF DOING THINGS
-	    		  //Get message from cookie
-	    		  String messageContent = null;
-	    		  Cookie[] cookies = request.getCookies();
-	    		  for(Cookie cookie : cookies) {
+	    		//Add message to chat
+	    		HttpSession session = request.getSession();
+	    		String userType = (String)session.getAttribute("userType");
+	    		if(userType.equals("Patient")) {
 	    			  
-	    			  if(cookie.getName().equals("message")) {
-	    				  messageContent = cookie.getValue();
-	    			  }
-	    			  
-	    		  }
-	    		  */
-	    		  
-	    		  //Get message from POST request
-	    		  String messageContent = request.getParameter("message");
-	    		  
-	    		  System.out.println("Message: " + messageContent);
-	    		  
-	    		  //Add message to chat
-	    		  HttpSession session = request.getSession();
-	    		  String userType = (String)session.getAttribute("userType");
-	    		  if(userType.equals("Patient")) {
-	    			  
-	    			  Patient patient = new Patient((ObjectId)session.getAttribute("id"), database);
-		    		  Chat chat = patient.getChat();
+	    			Patient patient = new Patient((ObjectId)session.getAttribute("id"), database);
+		    		Chat chat = patient.getChat();
 		    		  
-		    		  //!@!@! Chat is null because patient and therapist have not accepted the request yet
-		    		  boolean senderIsPatient = false;
+		    		Message message = new Message(chat.getPatient(), chat.getTherapist(),
+		    				true, messageContent, database);
+		    		
+		    		chat.addMessage(message);
 		    		  
-		    		  if(userType.equals("Patient")) {
-		    			  senderIsPatient = true;
-		    		  } else if(userType.equals("Therapist")) {
-		    			  senderIsPatient = false;
-		    		  }
-		    		  
-		    		  Message message = new Message(chat.getPatient(), chat.getTherapist(),
-		    				  senderIsPatient, messageContent, database);
-		    		  chat.addMessage(message);
-		    		  acontext.complete();
-		    		  return;
-		    		  
-	    		  } else {
+	    		} else {
 	    			  
-	    			  Chat chat = (Chat)session.getAttribute("chat");
+	    			Chat chat = (Chat)session.getAttribute("chat");
 	    			  
-	    			  Message message = new Message(chat.getPatient(), chat.getTherapist(), true, messageContent, database);
-		    		  chat.addMessage(message);
-		    		  acontext.complete();
-	    			  return;
+	    			Message message = new Message(chat.getPatient(), chat.getTherapist(),
+	    					false, messageContent, database);
+	    			
+		    		chat.addMessage(message);
 	    			  
-	    		  }
+	    		}
+	    		
+	    		acontext.complete();
 	    		  
-	    	  }
+	    	}
 	    	  
-	      });
+	    });
 	      
 	}
 	

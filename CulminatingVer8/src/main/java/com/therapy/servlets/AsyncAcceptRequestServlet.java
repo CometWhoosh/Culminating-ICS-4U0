@@ -18,9 +18,23 @@ import com.therapy.entities.Patient;
 import com.therapy.entities.Request;
 import com.therapy.entities.Therapist;
 
+/**
+ * This class is an asynchronous servlet that accepts the <code>Request</code> 
+ * specified in the HTTP request parameter <code>id</code>. If the HTTP session
+ * attribute <code>userType</code> has a value of <code>Patient</code>, then 
+ * the <code>Request</code> is accepted using the <code>Patient</code> class.
+ * Otherwise, it is accepted using the <code>Therapist</code> class.
+ * 
+ * @author Yousef Bulbulia
+ *
+ */
 @WebServlet(urlPatterns={"/asyncAcceptRequest"}, asyncSupported=true)
 public class AsyncAcceptRequestServlet extends HttpServlet { 
-
+	
+	/**
+	 * Creates an <code>AsyncContext</code> and uses it to asynchronously
+	 * accept the <code>Request</code>.
+	 */
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
@@ -31,27 +45,22 @@ public class AsyncAcceptRequestServlet extends HttpServlet {
 	    	  
 	    	public void run() {
 	    		
-	    		System.out.println("Async accept");
-	    		
 	    		//Get the database
 	    		MongoClient client = Util.getMongoClient();
 	    		MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
 	    		
-	    		//Get the <code>Request</code>
+	    		//Get the Request
 	    		String idHexString = (String)request.getParameter("id");
 	    		Request patientRequest = new Request(new ObjectId(idHexString), database);
-	    		System.out.println("AyncServlet: " + idHexString);
+	    		
 	    		//Accept the request
 	    		HttpSession session = request.getSession();
 	    		String userType = (String)session.getAttribute("userType");
 	    		if(userType.equals("Patient") ) {
-	    			System.out.println("Right before the accept call");
 	    			patientRequest.accept(Patient.class);
 	    		} else if(userType.equals("Therapist")) {
 	    			patientRequest.accept(Therapist.class);
 	    		}
-	    		
-	    		System.out.println("request accepted");
 	    		
 	    		acontext.complete();
 	    		

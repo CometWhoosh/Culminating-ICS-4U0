@@ -23,11 +23,28 @@ import com.mongodb.client.MongoDatabase;
 import com.therapy.entities.Chat;
 import com.therapy.entities.Message;
 import com.therapy.entities.Patient;
-import com.therapy.entities.Therapist;
 
+/**
+ * This class is an asynchronous servlet that gets new <code>Message</code>
+ * objects in the current <code>Chat</code>.
+ * 
+ * It retrieves <code>Message</code> objects that were inserted after the last 
+ * time it was executed, or the most recent 15 <code>Message</code> objects in 
+ * the current <code>Chat</code> if the servlet is executing for the first time. 
+ * 
+ * The new <code>Message</code> objects are then written as a JSON array 
+ * through the HTTP response. 
+ * 
+ * @author Yousef Bulbulia
+ *
+ */
 @WebServlet(urlPatterns={"/asyncDisplayMessages"}, asyncSupported=true)
 public class AsyncDisplayMessagesServlet extends HttpServlet {
 	
+	/**
+	 * Retrieves the new <code>Message</code> objects and writes them in JSON
+	 * format through the HTTP response.
+	 */
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
@@ -42,14 +59,14 @@ public class AsyncDisplayMessagesServlet extends HttpServlet {
 				try {
 					TimeUnit.MILLISECONDS.sleep(1 * 1000);
 	    		} catch(InterruptedException e) {
-	    				  
+	    			e.printStackTrace();	  
 	    	    }
 				
 				//Get the connection to the database
 				MongoClient client = new MongoClient(/*...*/);
 				MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
 				
-				//Get the Chat
+				//Get the current Chat
 				HttpSession session = request.getSession();
 				Chat chat = null;
 				if(session.getAttribute("userType") == "Patient") {
@@ -57,7 +74,6 @@ public class AsyncDisplayMessagesServlet extends HttpServlet {
 				} else if(session.getAttribute("userType") == "Therapist") {
 					chat = (Chat)session.getAttribute("chat");
 				}
-				
 				
 				//Get the data previously set to the ServletContext
 				ServletContext context = session.getServletContext();
@@ -76,13 +92,14 @@ public class AsyncDisplayMessagesServlet extends HttpServlet {
 				mostRecentMessage = newMessages[newMessages.length - 1];
 				context.setAttribute("mostRecentMessage", mostRecentMessage);
 				
-				//Convert <code>newMessages</code> to a JSON object
+				/*
+				 * Convert newMessages into a JSON array 
+				 * contained within a JSON object
+				 */
 				JsonObject messageContainer;
 				
-				JsonObject[] messageObjects = new JsonObject[newMessages.length];
-				JsonArray jsonMessagesArray;
 				JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
-				//
+				
 				for(int i = 0; i < newMessages.length; i++) {
 					
 					JsonObject messageObject = null;

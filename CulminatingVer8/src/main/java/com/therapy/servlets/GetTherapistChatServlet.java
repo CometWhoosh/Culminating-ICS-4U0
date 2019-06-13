@@ -16,13 +16,26 @@ import com.mongodb.client.MongoDatabase;
 import com.therapy.entities.Chat;
 import com.therapy.entities.Therapist;
 
+/**
+ * This class is a servlet that gets the <code>Chat</code> object for the
+ * patient chosen by the therapist and saves it in the HTTP session attribute
+ * <code>chat</code>.
+ * 
+ * @author Yousfe Bulbulia
+ *
+ */
 @WebServlet("/getChat")
 public class GetTherapistChatServlet extends HttpServlet {
 	
+	/**
+	 * Gets the <code>Chat</code> object for the patient chosen by the 
+	 * therapist and saves it in the HTTP session attribute <code>chat</code>.
+	 */
 	@Override
 	public void doGet(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
+		//Get the database
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);	
 		
@@ -33,16 +46,6 @@ public class GetTherapistChatServlet extends HttpServlet {
 		String targetPatientName = (String)request.getAttribute("patientChats");
 		
 		
-		
-		/*
-		//Check which Chat was pressed
-		for(Chat chat : chats) {
-			
-			
-			
-		}
-		*/
-		
 		//Get the chat that belongs to the therapist and the specified patient
 		Chat[] chats = therapist.getChats();
 		Chat chat = null;
@@ -50,9 +53,6 @@ public class GetTherapistChatServlet extends HttpServlet {
 			
 			//If the patient names match, get the chat for the patient and therapist
 			String patientName = chats[i].getPatient().getFullName();
-			
-			System.out.println("targetPatientName: " + targetPatientName);
-			System.out.println("patientName: " + patientName);
 		    
 			if(targetPatientName.equalsIgnoreCase(patientName)) {
 				chat = chats[i];
@@ -62,7 +62,7 @@ public class GetTherapistChatServlet extends HttpServlet {
 		
 		session.setAttribute("isNewMessagingSession", true);
 		session.setAttribute("chat", chat);
-		request.getRequestDispatcher("/therapistMessenger.html");
+		request.getRequestDispatcher("/therapistMessenger.html").forward(request, response);;
 		
 	}
 

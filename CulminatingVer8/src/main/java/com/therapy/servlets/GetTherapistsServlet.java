@@ -1,12 +1,5 @@
 package com.therapy.servlets;
 
-import static com.mongodb.client.model.Filters.and;
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.exists;
-import static com.mongodb.client.model.Filters.lte;
-import static com.mongodb.client.model.Filters.nor;
-import static com.mongodb.client.model.Filters.or;
-
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,8 +24,32 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.exists;
+import static com.mongodb.client.model.Filters.lte;
+import static com.mongodb.client.model.Filters.nor;
+import static com.mongodb.client.model.Filters.or;
 
-//TODO: Make the algorithm safe for resource sharing
+/**
+ * This class is servlet that retrieves ten <code>Therapist</code> objects for
+ * a patient that is signing up for the website to request. 
+ * 
+ * Nine of these <code>Therapist</code> objects represent therapists that have
+ * experience on the site. Experience is defined by having more than six 
+ * patients rate them. These nine therapists are ordered from the
+ * highest-rated to the lowest-rated.
+ * 
+ * The tenth therapist is a therapist with little to no experience.
+ * 
+ * This ensures that patients are able to choose therapists based on quality
+ * while still providing new therapists with a chance to treat patients 
+ * without having to worry about having to compete with the ratings of
+ * therapists that have been on the site longer than them.
+ * 
+ * @author Yousef Bulbulia
+ *
+ */
 @WebServlet("/getTherapists")
 public class GetTherapistsServlet extends HttpServlet {
 
