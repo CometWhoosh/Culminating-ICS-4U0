@@ -53,15 +53,14 @@
 				out.print("<p style=\"background-color:grey\" id=\"" + id + "\">Pending</p>");
 			}
 		
+		%>
+		
+		<!-- If the therapist accepted, then display an option for the patient to accept -->
+		<%if(requests[i].therapistAccepted()) { %> 
+			<button type="button" value="<%=requests[i].getId().toHexString()%>">Accept</button>
+		 <%}%> 
 		 
 		
-		//If the therapist accepted, then display an option for the patient to accept
-		if(requests[i].therapistAccepted()) { 
-			out.print("<button type=\"button\" value=\""
-					+ requests[i].getId().toHexString() + ">Accept</button>");
-		 } 
-		 
-		%>
 		 
 		 <!--  TRY THE NEW WAY FIRST
 		<script type="text/javascript">
@@ -87,7 +86,7 @@
 						{ 
 							id: this.value 
 						},
-						function() 
+						function() { 
 							//Replace the accept button with a sign that says "accepted"
 							var pendingSign = document.createElement("p");
 							acceptedSign.innherHTML = "Accepted";

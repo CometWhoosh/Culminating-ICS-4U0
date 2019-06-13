@@ -41,7 +41,7 @@
 	
 	<%
 		if(requests != null) {
-		for(int i = 0; i < requests.length; i++) { 
+			for(int i = 0; i < requests.length; i++) { 
 		
 	%>
 		
@@ -84,7 +84,7 @@
 						{ 
 							id: this.value 
 						},
-						function() 
+						function() {
 							//Replace the accept button with a sign that says "pending"
 							var pendingSign = document.createElement("p");
 							pendingSign.innherHTML = "Pending";

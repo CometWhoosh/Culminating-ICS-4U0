@@ -33,20 +33,22 @@
 	%>
 	
 	
-	<!-- Messaging -->
 	
-	<div id="otherUserMessageDiv">
-		<!-- therapist div -->
-	</div>
-	
-	<textarea id="textarea" rows="10" cols="55" name="textarea" onkeyup="addMessage()">Type your message here...
-			</textarea>
 	
 	<%
 		if(chat == null) {
-			out.println("<p>After accepting a therapist, your will be able to message theme here</p>");
+			out.println("<p>After accepting a therapist, you will be able to message them here</p>");
 		} else {
 	%>
+	
+		<!-- Messaging -->
+	
+		<div id="otherUserMessageDiv">
+			<!-- therapist div -->
+		</div>
+		
+		<textarea id="textarea" rows="10" cols="55" name="textarea" onkeyup="addMessage()">Type your message here...
+				</textarea>
 	
 		<!-- Display any new messages -->
 		<script type="text/javascript">

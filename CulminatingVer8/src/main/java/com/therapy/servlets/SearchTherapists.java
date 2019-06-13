@@ -39,7 +39,7 @@ public class SearchTherapists extends HttpServlet {
 			Document therapistDoc = cursor.next();
 			Therapist therapist = new Therapist(therapistDoc.getObjectId("_id"), database);
 			
-			if(therapistName.equals(therapist.getFullName())) {
+			if(therapistName.equalsIgnoreCase(therapist.getFullName())) {
 				matchingTherapists.add(therapist);
 			}
 			

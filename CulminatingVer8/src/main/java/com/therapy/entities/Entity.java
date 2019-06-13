@@ -48,7 +48,7 @@ public abstract class Entity {
 	 */
 	public Document getDocument() throws IllegalStateException {
 		
-		System.out.println("Entity: " + id.toHexString());
+		
 		Document doc = collection.find(eq(id)).first();
 		
 		if(doc == null) {

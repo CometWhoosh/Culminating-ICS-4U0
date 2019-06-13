@@ -31,6 +31,8 @@ public class AsyncAcceptRequestServlet extends HttpServlet {
 	    	  
 	    	public void run() {
 	    		
+	    		System.out.println("Async accept");
+	    		
 	    		//Get the database
 	    		MongoClient client = Util.getMongoClient();
 	    		MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
@@ -38,7 +40,7 @@ public class AsyncAcceptRequestServlet extends HttpServlet {
 	    		//Get the <code>Request</code>
 	    		String idHexString = request.getParameter("id");
 	    		Request patientRequest = new Request(new ObjectId(idHexString), database);
-	    		
+	    		System.out.println("AyncServlet: " + idHexString);
 	    		//Accept the request
 	    		HttpSession session = request.getSession();
 	    		String userType = (String)session.getAttribute("userType");
@@ -47,6 +49,8 @@ public class AsyncAcceptRequestServlet extends HttpServlet {
 	    		} else if(userType.equals("Therapist")) {
 	    			patientRequest.accept(Therapist.class);
 	    		}
+	    		
+	    		System.out.println("request accepted");
 	    		
 	    		acontext.complete();
 	    		

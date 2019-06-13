@@ -119,6 +119,7 @@ public class SignUpServlet extends HttpServlet {
 			
 			if(userType.equals("Therapist")) {
 				fields.put("patient_limit", patientLimit);
+				fields.put("can_receive_requests", true);
 			}
 			
 			boolean isDuplicate = false;

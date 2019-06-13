@@ -37,9 +37,12 @@
 	<%for(int i = 0; i < therapists.size(); i++){ %>
 		
 		<p><%=therapists.get(i).getFullName() %></p>
-		<%Double rating = therapists.get(i).getRating();%>
-		<p>Rating: <%=therapists.get(i).getRating()%></p>
 		
+		<%if(therapists.get(i).getRating() != null) { %>
+			<p>Rating: <%=therapists.get(i).getRating()%></p>
+		<%} else { %>
+			<p>Rating: None</p>
+		<%}%>
 		<%if(therapists.get(i).canReceiveRequests()) { %>
 			<button type="button" value="<%=therapists.get(i).getId().toHexString()%>">Request</button>
 		<%} else {%>

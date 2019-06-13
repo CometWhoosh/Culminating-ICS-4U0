@@ -188,7 +188,7 @@ public class Request extends Entity{
     }
     
     public boolean therapistAccepted() {
-    	return getDocument().getBoolean("patient_accepted", false);
+    	return getDocument().getBoolean("therapist_accepted", false);
     }
     
     /**
@@ -200,14 +200,19 @@ public class Request extends Entity{
     		
     		if(therapistAccepted()) {
     			
-    			collection.findOneAndUpdate(eq(id), Updates.set("patient_accepted", Boolean.valueOf(true)));
-        		Patient patient = getPatient();
+    			Patient patient = getPatient();
         		Therapist therapist = getTherapist();
         		
         		patient.setTherapist(therapist);
-            	patient.setChat(new Chat(patient, therapist, database));
+        		therapist.addPatient(patient);
+        		
+        		Chat chat = new Chat(patient, therapist, database);
+            	patient.setChat(chat);
+            	therapist.addChat(chat);
             	
-            	therapist.addPatient(patient);
+    			collection.findOneAndUpdate(eq(id), Updates.set("patient_accepted", Boolean.valueOf(true)));
+    			collection.findOneAndDelete(eq(id));
+        		
     			
     		} else {
     			throw new IllegalStateException("Therapist must accept first before patient");
@@ -217,7 +222,7 @@ public class Request extends Entity{
     	} else if(userClass == Therapist.class) {
     		
     		if(!patientAccepted()) {
-    			collection.findOneAndUpdate(eq(id), Updates.set("Therapist_accepted", Boolean.valueOf(true)));
+    			collection.findOneAndUpdate(eq(id), Updates.set("therapist_accepted", Boolean.valueOf(true)));
     		} else {
     			throw new IllegalStateException("Therapist must accept first before patient");
     		}

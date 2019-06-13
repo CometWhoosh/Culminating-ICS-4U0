@@ -49,7 +49,7 @@ public class Therapist extends User {
     	return getDocument().getBoolean("can_receive_requests");
     }
 
-    public IntegegetRating() {
+    public Integer getRating() {
     	return getDocument().getInteger("rating");
     }
     
@@ -156,9 +156,11 @@ public class Therapist extends User {
     	
     	collection.findOneAndUpdate(eq(id), Updates.push("patient_ids", patient.getId()));
     	
-    	Chat chat = new Chat(patient, this, database);
-    	collection.findOneAndUpdate(eq(id), Updates.push("chat_ids", chat.getId()));
     	
+    }
+    
+    public void addChat(Chat chat) {
+    	collection.findOneAndUpdate(eq(id), Updates.push("chat_ids", chat.getId()));
     }
     
     public void addRating(Integer newUserRating) throws IllegalArgumentException {
