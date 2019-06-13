@@ -4,6 +4,7 @@ import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.bson.Document;
 import org.bson.types.ObjectId;
@@ -64,9 +65,12 @@ public class Therapist extends User {
     	Patient[] patients = null;
     	
     	try {
+    		//!@!@ Look at lines 137 - 140 in User class for solution (Already Done)
+	    	//ObjectId[] patientIds = doc.get("message_ids", ObjectId[].class);
+    		final Class<? extends List> listClass = new ArrayList<ObjectId>().getClass();
+    		List<ObjectId> idsAsList = doc.get("patient_ids", listClass);
+    		ObjectId[] patientIds = idsAsList.toArray(ObjectId[]::new);
     		
-	    	ObjectId[] patientIds = doc.get("message_ids", ObjectId[].class);
-	    	//!@!@ Look at lines 137 - 140 in User class for solution
 	    
 	    	patients = null;
 	    	if(patientIds != null) {
@@ -92,7 +96,10 @@ public class Therapist extends User {
     	
     	try {
     		
-	    	ObjectId[] chatIds = doc.get("chat_ids", ObjectId[].class);
+	    	//ObjectId[] chatIds = doc.get("chat_ids", ObjectId[].class);
+    		final Class<? extends List> listClass = new ArrayList<ObjectId>().getClass();
+    		List<ObjectId> idsAsList = doc.get("chat_ids", listClass);
+    		ObjectId[] chatIds = idsAsList.toArray(ObjectId[]::new);
 	    	
 	    	chats = null;
 	    	if(chatIds != null) {

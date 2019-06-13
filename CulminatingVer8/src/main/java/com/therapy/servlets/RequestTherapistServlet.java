@@ -29,6 +29,7 @@ public class RequestTherapistServlet extends HttpServlet {
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
+		System.out.println("RequestTherapistsServlet");
 		
 		/*
 		 * TODO: For shared resources concern, try updating to mongodb 3.8.2

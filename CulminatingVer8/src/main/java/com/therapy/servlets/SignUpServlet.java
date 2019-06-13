@@ -7,12 +7,12 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.KeySpec;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
-import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -57,6 +57,8 @@ public class SignUpServlet extends HttpServlet {
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
+		System.out.println("SignUpServlet");///////////////DEBUG//////////////////
+		
 		//Get user input
 		String userType = request.getParameter("userType");
 		String firstName = request.getParameter("first_name");
@@ -65,6 +67,7 @@ public class SignUpServlet extends HttpServlet {
 		String password = request.getParameter("password");
 		int patientLimit = 0;
 		
+		System.out.println("1"); /////DEBUG////////
 		
 		if(userType.equals("Therapist")) {
 			
@@ -77,6 +80,7 @@ public class SignUpServlet extends HttpServlet {
 			
 			
 		}
+		System.out.println("2"); /////DEBUG////////
 		
 		//Hash password
 		SecureRandom random = new SecureRandom();
@@ -100,6 +104,8 @@ public class SignUpServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 		
+		System.out.println("3"); /////DEBUG////////
+		
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
 	    
@@ -121,7 +127,7 @@ public class SignUpServlet extends HttpServlet {
 				fields.put("patient_limit", patientLimit);
 				fields.put("can_receive_requests", true);
 			}
-			
+			System.out.println("4"); /////DEBUG////////
 			boolean isDuplicate = false;
 			ObjectId id = null;
 			
@@ -134,22 +140,26 @@ public class SignUpServlet extends HttpServlet {
 				fields.put("_id", id);
 				
 				try {
-					collection.insertOne(new Document("_id", id));
+					
+					//try to insert the document
+					Document doc = new Document("_id", id)
+							.append("email", email);
+					collection.insertOne(doc);
+					
 				} catch(MongoWriteException e) {
 					if(e.getCode() == 11000) {
 						isDuplicate = true;
 					}
 				}
-				
 			} while(isDuplicate);
-			
+			System.out.println("5"); /////DEBUG////////
 			try {
 				collection.replaceOne(eq(id), new Document(fields));
 			} catch(MongoWriteException e) {
 				response.sendRedirect(projectPath + "/signUp.jsp?databaseError=1");
 				return;
 			}
-			
+			System.out.println("6"); /////DEBUG////////
 			HttpSession session = request.getSession();
 			session.setAttribute("id", id);
 			session.setAttribute("userType", userType);
@@ -160,8 +170,10 @@ public class SignUpServlet extends HttpServlet {
 			System.out.println("SignUpServlet - ID: " + id.toHexString());
 			
 			if(userType.equals("Patient")) {
+				System.out.println("7"); /////DEBUG////////
 				request.getRequestDispatcher("/getTherapists").forward(request, response);
 				//response.sendRedirect(projectPath + "/getTherapists");
+				System.out.println("8"); /////DEBUG////////
 				return;
 			} else {
 				request.getRequestDispatcher("/therapistHomepage.jsp").forward(request, response);

@@ -38,9 +38,10 @@
 	<%
 		if(chat == null) {
 			out.println("<p>After accepting a therapist, you will be able to message them here</p>");
-		} else {
+		} 
 	%>
 	
+	<%if(chat != null) { %>
 		<!-- Messaging -->
 	
 		<div id="otherUserMessageDiv">
@@ -105,12 +106,8 @@
 			loadNewMessages();
 			
 		</script>
-	
-	
-	
 		
-	
-	<% } %>
+	<%} %>
 	
 	<!-- Search Therapists -->
 	<form id="searchTherapists" method="post" action="/CulminatingVer8/searchTherapists">

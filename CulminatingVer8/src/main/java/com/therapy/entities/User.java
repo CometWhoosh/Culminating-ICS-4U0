@@ -123,6 +123,9 @@ public abstract class User extends Entity{
     	collection.findOneAndUpdate(eq(id), Updates.push("request_ids", request.getId()));
     }
     
+    public void removeRequest(Request request) {
+    	collection.findOneAndUpdate(eq(id), Updates.pull("request_ids", request.getId()));
+    }
     
     /**
      * 

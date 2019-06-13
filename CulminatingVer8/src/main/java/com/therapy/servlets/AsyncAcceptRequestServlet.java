@@ -38,13 +38,14 @@ public class AsyncAcceptRequestServlet extends HttpServlet {
 	    		MongoDatabase database = client.getDatabase(Util.DATABASE_NAME);
 	    		
 	    		//Get the <code>Request</code>
-	    		String idHexString = request.getParameter("id");
+	    		String idHexString = (String)request.getParameter("id");
 	    		Request patientRequest = new Request(new ObjectId(idHexString), database);
 	    		System.out.println("AyncServlet: " + idHexString);
 	    		//Accept the request
 	    		HttpSession session = request.getSession();
 	    		String userType = (String)session.getAttribute("userType");
 	    		if(userType.equals("Patient") ) {
+	    			System.out.println("Right before the accept call");
 	    			patientRequest.accept(Patient.class);
 	    		} else if(userType.equals("Therapist")) {
 	    			patientRequest.accept(Therapist.class);

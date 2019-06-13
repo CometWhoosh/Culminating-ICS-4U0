@@ -62,7 +62,7 @@ public abstract class Entity {
 		
 		boolean isDuplicate = false;
 		ObjectId id = null;
-		
+		int counter = 1;
 		do {
 			
 			isDuplicate = false;
@@ -73,6 +73,7 @@ public abstract class Entity {
 			 * already belongs to another entity in its collection, then
 			 * make a new id and try again.
 			 */
+			System.out.println(counter++);
 			try {
 				collection.insertOne(new Document("_id", id));
 			} catch(MongoWriteException e) {

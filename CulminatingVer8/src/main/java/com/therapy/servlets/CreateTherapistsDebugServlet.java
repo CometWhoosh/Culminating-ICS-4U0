@@ -101,24 +101,24 @@ public class CreateTherapistsDebugServlet extends HttpServlet {
 			boolean isDuplicate = false;
 			ObjectId id = null;
 			
-			do {
+do {
 				
 				isDuplicate = false;
 				id = ObjectId.get();
 				
 				try {
-					collection.insertOne(new Document("_id", id));
+					
+					//try to insert the document
+					Document document = new Document("_id", id)
+							.append("email", email);
+					collection.insertOne(document);
+					
 				} catch(MongoWriteException e) {
 					if(e.getCode() == 11000) {
 						isDuplicate = true;
-					} else {
-						
 					}
 				}
-				
 			} while(isDuplicate);
-			
-			doc.append("_id", id);
 			
 			collection.replaceOne(eq(id), doc);
 			

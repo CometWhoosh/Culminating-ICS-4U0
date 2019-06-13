@@ -39,6 +39,9 @@ public class GetTherapistsServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
+		
+		System.out.println("GetTherapistsServlet");
+		
 		/*
 		 * This HttpSession is not actually used in this servlet. I only added it
 		 * in order to check if it's id was the same as the on in SignUpServlet.

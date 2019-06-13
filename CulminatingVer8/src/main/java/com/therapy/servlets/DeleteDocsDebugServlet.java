@@ -19,7 +19,7 @@ import com.mongodb.client.MongoDatabase;
 @WebServlet("/deleteAllPatients")
 public class DeleteDocsDebugServlet extends HttpServlet {
 
-	private String userType = "Therapist";
+	private String userType = "Patient";
 	
 	@Override
 	public void doGet(HttpServletRequest request, 

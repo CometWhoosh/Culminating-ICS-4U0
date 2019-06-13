@@ -46,27 +46,31 @@ public class Chat extends Entity{
     	
     	
     	super(database);
-    	
-    	collection = database.getCollection("patients");
+    	System.out.println("Chat(): 1");
+    	collection = database.getCollection("chats");
     	
     	//If there is already a <code>Chat</code> for these users, then throw <code>IllegalStateException</code>
+    	System.out.println("Chat(): 2");
     	ObjectId patientId = patient.getId();
     	ObjectId therapistId = therapist.getId();
+    	System.out.println("Chat(): 3");
     	Document doc = collection.find(
     			and(
     					eq("patient_id", patientId), eq("therapist_id", therapistId)
     			)).first();
+    	System.out.println("Chat(): 4");
     	if(doc != null) {
     		throw new IllegalStateException("This constructor is only for Chats that"
     				+ "have not been created in the database yet");
     	}
     	
+    	System.out.println("Chat(): 5");
     	id = getUniqueId();
-    	this.database = database;
-    	
+    	System.out.println("Chat(): 6");
 		collection.findOneAndUpdate(eq(id), Updates.set("patient_id", patient.getId()));
+		System.out.println("Chat(): 7");
 		collection.findOneAndUpdate(eq(id), Updates.set("therapist_id", therapist.getId()));
-    	
+		System.out.println("Chat(): 8");
     }
     
     public Chat(ObjectId id, MongoDatabase database) {
