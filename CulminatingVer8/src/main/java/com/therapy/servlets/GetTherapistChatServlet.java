@@ -20,7 +20,7 @@ import com.therapy.entities.Therapist;
 public class GetTherapistChatServlet extends HttpServlet {
 	
 	@Override
-	public void doPost(HttpServletRequest request, 
+	public void doGet(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
 		MongoClient mongoClient = Util.getMongoClient();
@@ -62,6 +62,7 @@ public class GetTherapistChatServlet extends HttpServlet {
 		
 		session.setAttribute("isNewMessagingSession", true);
 		session.setAttribute("chat", chat);
+		request.getRequestDispatcher("/therapistMessenger.html");
 		
 	}
 

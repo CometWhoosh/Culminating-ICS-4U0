@@ -38,11 +38,10 @@
 
 	<%if(chats != null) { %>
 	
-		<form id="goToMessenger" method="post" action="/CulminatingVer8/getChat">
+		<form id="goToMessenger" method="get" action="/CulminatingVer8/getChat">
 			
 			<%for(int i = 0; i < chats.length; i++) { %>
-			 
-				<input type="submit" name="patientChats" value="<%=chats[i].getPatient().getFullName()%>">
+				<input type="submit" name="patientChats" value="<%=chats[i].toString()%>">
 			<%}%>
 			
 		</form> 

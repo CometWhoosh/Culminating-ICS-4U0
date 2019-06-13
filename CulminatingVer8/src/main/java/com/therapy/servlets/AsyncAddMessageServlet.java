@@ -83,7 +83,7 @@ public class AsyncAddMessageServlet extends HttpServlet {
 		    		  
 	    		  } else {
 	    			  
-	    			  Chat chat = (Chat)session.getAttribute("activeChat");
+	    			  Chat chat = (Chat)session.getAttribute("chat");
 	    			  
 	    			  Message message = new Message(chat.getPatient(), chat.getTherapist(), true, messageContent, database);
 		    		  chat.addMessage(message);
