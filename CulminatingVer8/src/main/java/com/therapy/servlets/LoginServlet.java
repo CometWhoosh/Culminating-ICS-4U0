@@ -35,7 +35,7 @@ import com.mongodb.client.MongoDatabase;
 @WebServlet("/loginServlet")
 public class LoginServlet extends HttpServlet {
 
-	private static final String serverIpAddress = "192.168.56.1"; 
+	private static final String serverIpAddress = "10.12.195.177"; 
 	private static final String serverPort = "8080";
 	private static final String projectPath = "http://" + serverIpAddress + ":" + serverPort + "/CulminatingVer8";
 	/**

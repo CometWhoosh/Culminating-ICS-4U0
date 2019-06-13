@@ -38,13 +38,24 @@
 
 	<%if(chats != null) { %>
 	
-		<form id="goToMessenger" method="post" action="therapistMessenger.jsp">
+		<form id="goToMessenger" method="post" action="/CulminatingVer8/getChat">
 			
 			<%for(int i = 0; i < chats.length; i++) { %>
+			 
 				<input type="submit" name="patientChats" value="<%=chats[i].getPatient().getFullName()%>">
 			<%}%>
 			
 		</form> 
+		
+		<!--
+		<script type="text/javascript">
+			//When a button for a patient chat is pressed, send the form
+			function sendForm() {
+				var messengerForm = document.getElementById("goToMessenger");
+				messengerForm.submit();
+			}
+		</script>
+		-->
 	
 	<%}%>
 	
