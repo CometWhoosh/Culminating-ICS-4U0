@@ -158,6 +158,38 @@ public class GetTherapistsServlet extends HttpServlet {
 		//Sort the 30 therapists using the Comparator
 		Arrays.sort(randomTherapists, descendingRatingsComparator);
 		
+		/*
+		 
+		A custom selection sort that will sort the randomTherapists from 
+		highest to lowest according to their ratings:
+		
+		int index;
+		
+		for(int i = 0; i < randomTherapists.length - 1; i++) {
+			
+			index = i;
+			
+			for(int j = 0 + i; j < randomTherapists.length - 1; j++) {
+				
+				//Compare
+				Integer therapist1Rating = randomTherapist[index].getInteger("rating");
+				Integer therapist2Rating = randomTherapists[j].getInteger("rating");
+				if(therapist2Rating > therapist1Rating) {
+					index = j;
+				}
+				
+			}
+			
+			//Swap
+			Document temp = randomTherapists[i];
+			
+			randomTherapists[i] = randomTherapists[index];
+			randomTherapists[index] = temp;
+			
+		}
+		
+		*/
+		
 		//Get the highest 9 rated experienced therapists
 		Map<String, Integer> therapistsToSend = new LinkedHashMap<>();
 		String[] therapistIds = new String[10];
@@ -172,6 +204,8 @@ public class GetTherapistsServlet extends HttpServlet {
 			
 		}
 		
+		
+		
 		//Set the name and id for the unexperienced therapist
 		String newTherapistName = newTherapist.getString("first_name") + " " + newTherapist.getString("last_name");
 		therapistsToSend.put(newTherapistName, newTherapist.getInteger("rating"));
@@ -181,6 +215,7 @@ public class GetTherapistsServlet extends HttpServlet {
 		request.setAttribute("retrievedTherapists", therapistsToSend);
 		request.setAttribute("therapistIds", therapistIds);
 		request.getRequestDispatcher("patientSetup.jsp").forward(request, response);
+		Util.LOGGER.info("Data for 10 random therapists were successfully forwarded to patientSetup.jsp");
 		
 	}
 	

@@ -78,6 +78,8 @@ public class RequestTherapistServlet extends HttpServlet {
 		}
 		
 		request.getRequestDispatcher("/patientHomepage.jsp").forward(request, response);
+		Util.LOGGER.info("Patient with id " + patientId.toHexString() + "successfully sent a request "
+				+ "to the therapist with id " + therapistId.toHexString());
 		
 	}
 	

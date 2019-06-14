@@ -147,6 +147,8 @@ public class SignUpServlet extends HttpServlet {
 				
 					Document doc = new Document(fields);
 					collection.insertOne(doc);
+					Util.LOGGER.info("new " + userType + "was created with the id"
+							+ id.toHexString() + " and inserted into the database.");
 					
 				} catch(MongoWriteException e) {
 					
@@ -172,16 +174,20 @@ public class SignUpServlet extends HttpServlet {
 			if(userType.equals("Patient")) {
 				
 				request.getRequestDispatcher("/getTherapists").forward(request, response);
+				Util.LOGGER.info("Patient with id" + id.toHexString() + "was forwarded to /getTherapists");
 				return;
 				
 			} else {
 				
 				request.getRequestDispatcher("/therapistHomepage.jsp").forward(request, response);
+				Util.LOGGER.info("Patient with id" + id.toHexString() + 
+						"was forwarded to /thearpistHomepage.jsp");
 				return;
 				
 			}
 			
 		} else {
+			
 			
 			response.sendRedirect(projectPath + "/signUp.jsp?emailError=1");
 			return;

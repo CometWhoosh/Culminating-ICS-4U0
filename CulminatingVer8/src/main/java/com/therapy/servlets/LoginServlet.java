@@ -106,16 +106,26 @@ public class LoginServlet extends HttpServlet {
 			session.setMaxInactiveInterval(-1);
 			
 			if(userType.equals("Patient")) {
+
 				request.getRequestDispatcher("/patientHomepage.jsp").forward(request, response);
+				Util.LOGGER.info("Patient with id " + userDoc.getObjectId("_id") + "was successfully"
+						+ "logged in and forwarded to /patientHomepage.jsp");
 				return;
+				
 			} else {
+				
 				request.getRequestDispatcher("/therapistHomepage.jsp").forward(request, response);
+				Util.LOGGER.info("Therapist with id " + userDoc.getObjectId("_id") + "was successfully"
+						+ "logged in and forwarded to /therapistHomepage.jsp");
 				return;
+				
 			}
 			
 		} else {
 			
 			response.sendRedirect(projectPath + "/login.jsp?passwordMismatch=1");
+			Util.LOGGER.info(userType + " with id " + userDoc.getObjectId("_id") + "did not provide"
+					+ "the correct password and was redirected back to /login.jsp");
 			return;
 			
 		}

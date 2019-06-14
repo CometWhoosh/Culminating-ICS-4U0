@@ -21,7 +21,7 @@ import static com.mongodb.client.model.Filters.eq;
  * @author Yousef Bulbulia
  * 
  */
-public abstract class User extends Entity{
+public abstract class User extends Entity {
     
 	/**
 	 * Creates a new <code>User</code> belonging to the given database with

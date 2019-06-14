@@ -1,6 +1,6 @@
 package com.therapy.servlets;
 
-import java.math.BigInteger;
+import java.util.logging.Logger;
 
 import org.bson.Document;
 
@@ -23,6 +23,7 @@ import com.mongodb.client.model.IndexOptions;
 public final class Util {
 
 	public static final String DATABASE_NAME = "Therapy";
+	public final static Logger LOGGER = Logger.getLogger(Util.class.getName());
 	
 	/**
 	 * This constructor is a private, empty constructor. This is so that a 
