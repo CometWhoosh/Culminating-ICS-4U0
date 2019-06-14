@@ -37,7 +37,7 @@ public class AsyncAddMessageServlet extends HttpServlet {
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
-		response.setContentType("text/html;charset=UTF-8");
+	    response.setContentType("text/html;charset=UTF-8");
 	    final AsyncContext acontext = request.startAsync();
 	    acontext.start(new Runnable() {
 	    	  
