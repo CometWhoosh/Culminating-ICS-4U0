@@ -9,28 +9,31 @@
 </head>
 <body>
 
-
 	<h1>Sign Up</h1>
-	<!--onsubmit="return verifyNumberOnlyInput()"-->
-	<form method="post"  action="/CulminatingVer8/signUpServlet">
 	
+	<form method="post"  action="/CulminatingVer8/signUpServlet">
 		<p>I am a:</p>
 		<select name="userType" id="userType" onchange="checkIfTherapist()" required>
 			<option value="Patient">Patient</option>
 			<option value="Therapist">Therapist</option>
-		</select> <br>
+		</select> 
+		<br>
 		
 		<p>First name</p>
-		<input name="first_name" type="text" required> <br>
+		<input name="first_name" type="text" required> 
+		<br>
 		
 		<p>Last name</p>
-		<input name="last_name" type="text" required> <br>
+		<input name="last_name" type="text" required> 
+		<br>
 		
 		<p>Email</p>
-		<input name="email" type="text" required> <br>
+		<input name="email" type="text" required> 
+		<br>
 		
 		<p>Password<p>
-		<input name="password" type="password" required> <br> 
+		<input name="password" type="password" required> 
+		<br> 
 		
 		<p id="patientLimit" style="display: none">What is the maximum number of patients you will take on?</p>
 		<input name="patientLimitInput" id="patientLimitInput" type="text" style="display: none"> 
@@ -40,6 +43,7 @@
 		
 	</form>
 	
+	<!-- If the user is a therapist, then display the patientLimit text input and <br> tag -->
 	<script type="text/javascript">
 	
 		function checkIfTherapist() {
@@ -61,29 +65,13 @@
 			
 		}
 		
-		<!--
-		function verifyNumberOnlyInput() {
-			
-			var patientLimitInput = document.getElementById("patientLimitInput").value;
-			var re = /[0-9]*/;
-			
-			var verified = re.exec(patientLimitInput);
-			
-			if(!verified) {
-				alert("Patient limit can only be a number");
-				return false;
-			}
-			
-			return true;
-			
-		}
-		-->
-		
 	</script>
-
+	
+	<p>Already have an account?<p>
+	<a href="login.jsp">Log in</a>
 
 	<%
-	
+		//Check for any errors from the SignUpServlet servlet
 		String emailErrorParameter = request.getParameter("emailError");
 		String databaseErrorParameter = request.getParameter("databaseError");
 		String numberFormatError = request.getParameter("numberFormatError");
@@ -107,12 +95,6 @@
 		}
 	
 	%>
-	
-	
-	
-	
-	<p>Already have an account?<p>
-	<a href="login.jsp">Log in</a>
 	
 </body>
 </html>

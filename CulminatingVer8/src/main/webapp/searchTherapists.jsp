@@ -1,5 +1,28 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
+    
+<%@ page import="com.mongodb.MongoClient" %>
+<%@ page import="com.mongodb.client.MongoDatabase" %>
+<%@ page import="com.mongodb.client.MongoCollection" %>
+<%@ page import="org.bson.Document" %>
+	
+<%@ page import="org.bson.types.ObjectId" %>
+
+<%@ page import="com.therapy.servlets.Util" %>
+<%@ page import="com.therapy.entities.*" %>
+
+<%@ page import="java.util.List" %>
+
+<%
+	//Connect to the database
+	MongoClient mongoClient = Util.getMongoClient();
+	MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
+	MongoCollection<Document> collection = database.getCollection("therapists");
+
+	List<Therapist> therapists = (List<Therapist>)request.getAttribute("matchingTherapists");
+	
+%>
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -9,31 +32,6 @@
 </head>
 <body>
 	
-	<%@ page import="com.mongodb.MongoClient" %>
-	<%@ page import="com.mongodb.client.MongoDatabase" %>
-	<%@ page import="com.mongodb.client.MongoCollection" %>
-	<%@ page import="org.bson.Document" %>
-	
-	<%@ page import="org.bson.types.ObjectId" %>
-	
-	<%@ page import="com.therapy.servlets.Util" %>
-	<%@ page import="com.therapy.entities.*" %>
-	
-	<%@ page import="java.util.List" %>
-	
-	<%
-		//Connect to the database
-		MongoClient mongoClient = Util.getMongoClient();
-		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
-		MongoCollection<Document> collection = database.getCollection("therapists");
-	
-		List<Therapist> therapists = (List<Therapist>)request.getAttribute("matchingTherapists");
-		
-	%>
-	
-	
-	<!-- Instead of having to use id's for each element in the loop, just make a div for each iteration,
-	then make the elements of divs line up in a line in css -->
 	<%for(int i = 0; i < therapists.size(); i++){ %>
 		
 		<p><%=therapists.get(i).getFullName() %></p>
@@ -53,7 +51,7 @@
 		
 	<%}%>
 	
-	<!-- Request button functionality -->
+	<!-- If one of the request buttons were clicked, add the request in /addRequestAsync servlet -->
 	<script type="text/javascript">
 		
 		$("button").click(function(event) {

@@ -6,72 +6,24 @@
 </head>
 <body>
 	
-	
-	<textarea id="textarea" rows="10" cols="55" name="textarea" onkeyup="addMessage()">Type your message here...
+	<!-- Messaging -->
+			
+		<!-- Messages will be added to these divs dynamically -->
+		<div id="therapistMessagesDiv"></div>
+		<div id="patientMessagesDiv"></div>
+		
+		<!-- Textarea where new messages should be typed -->
+		<textarea id="textarea" rows="10" cols="55" name="textarea" onkeyup="addMessage()">Type your message here...
 		</textarea>
-		
-	<div id="otherUserMessageDiv">
-		<!-- therapist div -->
-	</div>
 	
-	<!-- Display any new messages -->
-	<script type="text/javascript">
-			
-		function loadNewMessages() {
-				
-			var xhttp = new XMLHttpRequest();
-				  
-			xhttp.onreadystatechange = function() {
-				if (this.readyState == 4 && this.status == 200) {
-				      
-					//Get the JSON object	
-					var newMessages = JSON.parse(this.responseText);
-					      
-					//display
-					for(i = 0; i < newMessages.length; i++) {
-					var ptag = document.createElement("p");
-				   		var message = document.createTextNode(newMessages[i][0]);
-						ptag.appendChild(message);
-						document.getElementById("otherUserMessageDiv").appendChild(ptag);
-				    }
-					  
-				  	//Recursively call the function
-				 	loadNewMessages();
-				      
-				}
-			};
-				  
-			xhttp.open("POST", "/asyncDisplayMessages", true);
-			xhttp.send(); 
-		
-		}
-			
-		function addMessage() {
-				
-			//Get key that was released
-			var key = window.event.keyCode;
-				
-			var patientMessage = document.getElementById("textarea").innerHTML;
-			document.getElementById("textarea").innerHTML = "";
-				
-			// If ENTER was pressed
-			if (key === 13) {
-			    	
-				$.post("/CulminatingVer8/addMessageAsync",
-			    	{
-			    		message : patientMessage
-			    	});
-			    	
-			}
-				
-		}
-			
-		loadNewMessages();
-			
-	</script>
+		<!-- Add messages that were entered into the textarea -->
+		<script src="addMessage.js"></script>
 	
-	
-	
+		<!-- Display any new messages -->
+		<script src="loadMessages.js"></script>
+		<script type="text/javascript">
+			loadMessages();
+		</script>
 	
 </body>
 </html>
