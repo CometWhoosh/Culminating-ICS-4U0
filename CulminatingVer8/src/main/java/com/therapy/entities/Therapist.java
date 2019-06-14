@@ -1,6 +1,5 @@
 package com.therapy.entities;
 
-import static com.mongodb.client.model.Filters.eq;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,6 +10,7 @@ import org.bson.types.ObjectId;
 
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Updates;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
  * This class represents a therapist. Since it is one of the two types of 
