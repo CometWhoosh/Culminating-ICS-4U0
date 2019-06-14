@@ -108,13 +108,11 @@ public final class Util {
 	 * <code>therapists</code> depending on the value of <code>userType</code>.
 	 * 
 	 * @param database the database the collections belong to
-	 * 
 	 * @param userType the type of user the collection should contain. If it's 
-	 * 				   value is <code>"Patient"</code>, then the 
-	 * 				   <code>patients</code> collection will be returned. If
-	 * 			       it's value is <code>"Therapist"</code>, the 
-	 * 				   <code>therapists</code> collection will be returned.
-	 * 				   
+	 * 		   value is <code>"Patient"</code>, then the 
+	 * 		   <code>patients</code> collection will be returned. If
+	 * 	           it's value is <code>"Therapist"</code>, the 
+	 * 		   <code>therapists</code> collection will be returned.	   
 	 * @return         the appropriate collection
 	 */
 	public static MongoCollection<Document> getUserAppropriateCollection(MongoDatabase database, String userType) {
