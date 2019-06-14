@@ -1,4 +1,4 @@
-# CulminatingVer2----2019
+# Mental Health Messaging Service
 
 This program is a website that allows users to message therapists for treatment of mental health disorders. Users can sign up as one of two
 types: therapists, and patients. Patients can only have one therapist, while therapists can treat multiple patients. There is, however,  a 
