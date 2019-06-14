@@ -1,6 +1,5 @@
 package com.therapy.servlets;
 
-import static com.mongodb.client.model.Filters.eq;
 
 import java.io.IOException;
 
@@ -11,39 +10,51 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.apache.commons.codec.binary.Hex;
-import org.bson.Document;
 import org.bson.types.ObjectId;
 
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.therapy.entities.Patient;
 import com.therapy.entities.Request;
 import com.therapy.entities.Therapist;
 
+/**
+ * This class is a servlet that sends a request from the patient that is 
+ * currently signing up to the therapist chosen in patientSetup.jsp. 
+ * 
+ * @author Yousef Bulbulia
+ *
+ */
 @WebServlet("/requestTherapist")
 public class RequestTherapistServlet extends HttpServlet {
 
+	/**
+	 * Gets the therapist chosen from the HTTP request parameter 
+	 * <code>therapist</code> and sends them a request from the patient that is 
+	 * currently signing up. If the patient filled in a summary of their 
+	 * problems in the form, then retrieve it from the HTTP request parameter
+	 * <code>textarea</code> and include it in the creation of the 
+	 * <code>Request</code> object.
+	 * 
+	 * Afterwards, the patient is forwarded to patientHomepage.jsp
+	 */
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
-		System.out.println("RequestTherapistsServlet");
-		
-		/*
-		 * TODO: For shared resources concern, try updating to mongodb 3.8.2
-		 *       and seeing if all of the classes are there. Then, if it works, 
-		 *       use multi-doc transactions
-		 */
-		
+		//Get the database
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
 		
+		
 		HttpSession session = request.getSession(false);
-		System.out.println("ReqeuestServlet: " + session.getId());
 		
-		
+		/*
+		 * Get the Patient object for the current patient, the Therapist
+		 * object for the requested therapist, and using them create
+		 * a Request.
+		 * 
+		 */
 		ObjectId patientId = (ObjectId)session.getAttribute("id");
 		ObjectId therapistId = new ObjectId(request.getParameter("therapist"));
 		String summary = request.getParameter("textarea");
@@ -51,12 +62,15 @@ public class RequestTherapistServlet extends HttpServlet {
 		Patient patient = new Patient(patientId, database);
 		Therapist therapist = new Therapist(therapistId, database);
 		
+		/*
+		 * If a summary for the request was provided include it in the creation
+		 * of the Request object.
+		 */
 		Request patientRequest = null;
 		if(summary == null || summary == "") {
 			patientRequest = new Request(patient, therapist, database);
 		} else {
 			
-			System.out.println("There is a summary!");
 			patientRequest = new Request(patient, therapist, summary, database);
 			therapist.addRequest(patientRequest);
 			patient.addRequest(patientRequest);

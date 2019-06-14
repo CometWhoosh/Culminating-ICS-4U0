@@ -38,7 +38,8 @@ import static com.mongodb.client.model.Filters.or;
  * Nine of these <code>Therapist</code> objects represent therapists that have
  * experience on the site. Experience is defined by having more than six 
  * patients rate them. These nine therapists are ordered from the
- * highest-rated to the lowest-rated.
+ * highest-rated to the lowest-rated. They are retrieved in a 
+ * pseudo-random fashion.
  * 
  * The tenth therapist is a therapist with little to no experience.
  * 
@@ -52,74 +53,49 @@ import static com.mongodb.client.model.Filters.or;
  */
 @WebServlet("/getTherapists")
 public class GetTherapistsServlet extends HttpServlet {
-
+	
+	/**
+	 * Retrieves the ten therapists. Their names are added to the HTTP request 
+	 * as the attribute <code>retrievedTherapists</code>. Their _id fields are 
+	 * added to the HTTP request as the attribute <code>therapistIds</code>.
+	 * 
+	 * Afterwards, the patient is forwarded to the RequestTherapistServlet 
+	 * servlet.
+	 */
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
-		System.out.println("GetTherapistsServlet");
-		
-		/*
-		 * This HttpSession is not actually used in this servlet. I only added it
-		 * in order to check if it's id was the same as the on in SignUpServlet.
-		 */
-		HttpSession session = request.getSession(false);
-		System.out.println("GetTherapistServlet: " + session.getId());
-		
+		//Get the collection
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
-		
 		MongoCollection<Document> collection = database.getCollection("therapists");
 		
-		Map<String, Integer> therapistsToSend = new LinkedHashMap<>();
-		
 		/*
-		 * Get a therapist that either has no number_of_raters field,
-		 * or where number_of_raters is less than or equal to 6. Therapist
+		 * Retrieve one unexperienced therapist.
+		 * 
+		 * This is a therapist that either has no number_of_raters field, or 
+		 * where number_of_raters is less than or equal to 6. The therapist
 		 * must not have exceeded their request limit.
 		 */
-		
-		//Get new therapists
 		FindIterable<Document> findIter = collection.find( 
 				and(or(exists("number_of_raters", false), lte("number_of_raters", 6)), eq("can_receive_requests", true)) );
-	    
-		MongoCursor<Document> newTherapistCursor = findIter.iterator();
+	    MongoCursor<Document> newTherapistCursor = findIter.iterator();
 		
 		List<Document> newTherapists = new ArrayList<>();
-		
 		while(newTherapistCursor.hasNext()) {
 			newTherapists.add(newTherapistCursor.next());
 		}
 		
 		Document newTherapist = newTherapists.get(new Random().nextInt(newTherapists.size()));
 		
-		
-		/*int count = 0;
-		while(newTherapistIter.hasNext()) { 
-			
-			newTherapistIter.next();
-			count++; 
-			
-		}
-		
-		FindIterable<Document> singleElementIter = findIter.skip(new Random().nextInt(count - 1));
-		Document newTherapistDoc = singleElementIter.first();
-		
-		*/
-		
-		
-		
 		/*
-		 * Sort all therapists from highest to lowest rating. Then,
-		 * Get 2 very highly-rated therapists, 2 highly-rated therapists,
-		 * 2 well-rated therapists, and 2 moderately-rated therapists.
-		 * Therapist must not have exceeded their request limit.
+		 * Retrieve all experienced therapists from the database.
+		 * 
+		 * Then select 30 of these therapists at random, and retrieve the
+		 * ten therapists with the highest-rating.
 		 */
-		
-		//Get all therapists that aren't new (ones where number_of_raters > 6)
-		
-		
-		MongoCursor<Document> oldTherapistsIter  = collection.find(
+		MongoCursor<Document> experiencedTherapistsCursor  = collection.find(
 												       and(
 												    		   nor(exists("number_of_raters", false), 
 												    		       lte("number_of_raters", 6)
@@ -129,17 +105,20 @@ public class GetTherapistsServlet extends HttpServlet {
 												       )
 												       .iterator();
 		
+		List<Document> experiencedTherapists = new ArrayList<Document>();
 		
-		MongoCursor<Document> secondIter = oldTherapistsIter;
-		
-		List<Document> oldTherapists = new ArrayList<Document>();
-		
-		//Get all old therapists
-		while(oldTherapistsIter.hasNext()) {
-			oldTherapists.add(oldTherapistsIter.next());
+		while(experiencedTherapistsCursor.hasNext()) {
+			experiencedTherapists.add(experiencedTherapistsCursor.next());
 		}
 		
-		//Get a List of 30 random therapists
+		/*
+		 * Get a List of 30 of the experienced therapists randomly.
+		 * 
+		 * An array of 30 indexes are created which correspond to an index
+		 * in experiencedTherapists. These indexes are unique, with no duplicates
+		 * among them. The therapists at these indexes are the ones selected for
+		 * sorting according to their ratings.
+		 */
 		int[] indexes = new int[30];
 		Document[] randomTherapists = new Document[30];
 		for(int i = 0; i < 30; i++) {
@@ -150,7 +129,7 @@ public class GetTherapistsServlet extends HttpServlet {
 				
 				duplicateUsed = false;
 				
-				randomIndex = new Random().nextInt(oldTherapists.size());
+				randomIndex = new Random().nextInt(experiencedTherapists.size());
 				
 				for(int e : indexes) {
 					if(randomIndex == e) {
@@ -163,10 +142,11 @@ public class GetTherapistsServlet extends HttpServlet {
 				
 			} while(duplicateUsed);
 			
-			randomTherapists[i] = oldTherapists.get(randomIndex);
+			randomTherapists[i] = experiencedTherapists.get(randomIndex);
 			
 		}
 		
+		//Create a Comparator to sort the therapists from highest to lowest by their ratings
 		Comparator<Document> descendingRatingsComparator = new Comparator<Document>() {
 		
 			public int compare(Document o1, Document o2) {
@@ -175,25 +155,29 @@ public class GetTherapistsServlet extends HttpServlet {
 			
 		}.reversed();
 		
-		//Sort the 30 therapists
+		//Sort the 30 therapists using the Comparator
 		Arrays.sort(randomTherapists, descendingRatingsComparator);
 		
-		//Get the highest 9 rated therapists
+		//Get the highest 9 rated experienced therapists
+		Map<String, Integer> therapistsToSend = new LinkedHashMap<>();
 		String[] therapistIds = new String[10];
 		for(int i = 0; i < 9; i++) {
+			
 			String firstName  = randomTherapists[i].getString("first_name");
 			String lastName = randomTherapists[i].getString("last_name");
 			Integer rating = randomTherapists[i].getInteger("rating");
 			
 			therapistIds[i] = ((ObjectId)randomTherapists[i].get("_id")).toHexString();
-			
 			therapistsToSend.put(firstName + " " + lastName, rating);
+			
 		}
 		
+		//Set the name and id for the unexperienced therapist
 		String newTherapistName = newTherapist.getString("first_name") + " " + newTherapist.getString("last_name");
 		therapistsToSend.put(newTherapistName, newTherapist.getInteger("rating"));
 		therapistIds[9] = ((ObjectId)newTherapist.get("_id")).toHexString();
 		
+		//Set the HTTP request attributes
 		request.setAttribute("retrievedTherapists", therapistsToSend);
 		request.setAttribute("therapistIds", therapistIds);
 		request.getRequestDispatcher("patientSetup.jsp").forward(request, response);

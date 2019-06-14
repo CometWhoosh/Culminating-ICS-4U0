@@ -17,7 +17,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 @WebServlet("/listUsers")
-public class ListUsersServlet extends HttpServlet {
+public class ListUsersDebugServlet extends HttpServlet {
 	
 	private String userType = "Therapist";
 

@@ -106,12 +106,12 @@ public class AsyncDisplayMessagesServlet extends HttpServlet {
 					if(newMessages[i].senderIsPatient()) {
 						messageObject = Json.createObjectBuilder()
 							.add("content", newMessages[i].getContent())
-							.add("user_type", "Patient")
+							.add("userType", "Patient")
 							.build();
 					} else {
 						messageObject = Json.createObjectBuilder()
 							.add("content", newMessages[i].getContent())
-							.add("user_type", "Therapist")
+							.add("userType", "Therapist")
 							.build();
 					}
 					

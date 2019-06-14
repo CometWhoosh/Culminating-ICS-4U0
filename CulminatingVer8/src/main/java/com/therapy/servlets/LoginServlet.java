@@ -1,6 +1,5 @@
 package com.therapy.servlets;
 
-import static com.mongodb.client.model.Filters.eq;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
@@ -24,10 +23,11 @@ import org.bson.types.Binary;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import static com.mongodb.client.model.Filters.eq;
 
 /**
- * This class handles the form data sent from login.jsp. It logs
- * the user in.
+ * This class is a servlet that takes the data from the HTTP request attributes
+ * set by login.jsp and uses them to log in a user.
  *
  * @author Yousef Bulbulia
  * 
@@ -37,31 +37,33 @@ public class LoginServlet extends HttpServlet {
 
 	private static final String serverIpAddress = "10.12.195.177"; 
 	private static final String serverPort = "8080";
-	private static final String projectPath = "http://" + serverIpAddress + ":" + serverPort + "/CulminatingVer8";
+	private static final String projectPath = "http://" + serverIpAddress + ":8080/CulminatingVer8";
+	
 	/**
 	 * Handles the form data. If the email exists in the database, then
 	 * the users login information is authenticated. If the password 
 	 * does not match, or the email does not exist in the database, then
 	 * the user is sent back to login.jsp
-	 *  
-	 * @ param request  the http request from the client
-	 * @ param response the response sent by the servlet to the client
+	 * 
+	 * If the user is a patient, they are forwarded to patientHomepage.jsp, and
+	 * if they are a therapist, they are forwarded to therapistHomepage.html.
 	 */
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
 		
+		//Get the form data
 		String email = request.getParameter("email");
 		String password = request.getParameter("password");
 		String userType = request.getParameter("userType");
 		
+		//Get the collection
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
-			    
 		Util.intialiazeDatabase();
-		
 		MongoCollection<Document> collection = Util.getUserAppropriateCollection(database, userType);
 		
+		//Get the user's hashed password and salt from database
 		Document userDoc = null;
 		byte[] salt = null;
 		byte[] hashedPassword = null;
@@ -72,17 +74,12 @@ public class LoginServlet extends HttpServlet {
 			
 		} else {
 			
-			System.out.println("Emailnone");
-			//Write back to user saying email is non-existent in database
 			response.sendRedirect(projectPath + "/login.jsp?emailNotFound=1");
 			return;
 			
 		}
 		
-		//Hash password
-		
-		//Get salt from database
-				
+		//Hash the hash of the password given from the form
 		KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
 		SecretKeyFactory factory = null;
 				
@@ -100,7 +97,7 @@ public class LoginServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 		
-		//check if password matches
+		//Check if password hashes match
 		if(Arrays.equals(hash, hashedPassword)) {
 			
 			HttpSession session = request.getSession();
@@ -118,7 +115,6 @@ public class LoginServlet extends HttpServlet {
 			
 		} else {
 			
-			//Write back to user saying password does not match
 			response.sendRedirect(projectPath + "/login.jsp?passwordMismatch=1");
 			return;
 			

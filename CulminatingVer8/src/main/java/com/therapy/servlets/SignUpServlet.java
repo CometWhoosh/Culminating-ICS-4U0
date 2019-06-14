@@ -30,9 +30,8 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 
 /**
- * This class handles the form data sent from signUp.jsp. If
- * the email given does not already exist in the database, then the form
- * data is entered into the database.
+ * This class is a servlet that takes the data from the HTTP request attributes
+ * set by signUp.jsp and uses them to create a new account for a user.
  *
  * @author Yousef Bulbulia
  * 
@@ -49,25 +48,22 @@ public class SignUpServlet extends HttpServlet {
 	 * does not already exist in the database, the form data is entered 
 	 * into the database. If the email does already exist, then the client 
 	 * is redirected back to signUp.jsp
-	 *  
-	 * @ param request  the http request from the client
-	 * @ param response the response sent by the servlet to the client
+	 * 
+	 * If the user is a patient, they are forwarded to the GetTherapistsServlet 
+	 * servlet, and if they are a therapist, they are forwarded to 
+	 * therapistHomepage.html.
 	 */
 	@Override
 	public void doPost(HttpServletRequest request, 
 			HttpServletResponse response) throws IOException, ServletException {
-		
-		System.out.println("SignUpServlet");///////////////DEBUG//////////////////
-		
-		//Get user input
+	
+		//Get the form data
 		String userType = request.getParameter("userType");
 		String firstName = request.getParameter("first_name");
 		String lastName = request.getParameter("last_name");
 		String email = request.getParameter("email");
 		String password = request.getParameter("password");
 		int patientLimit = 0;
-		
-		System.out.println("1"); /////DEBUG////////
 		
 		if(userType.equals("Therapist")) {
 			
@@ -80,9 +76,9 @@ public class SignUpServlet extends HttpServlet {
 			
 			
 		}
-		System.out.println("2"); /////DEBUG////////
 		
-		//Hash password
+		
+		//Hash the password
 		SecureRandom random = new SecureRandom();
 		byte[] salt = new byte[16];
 		random.nextBytes(salt);
@@ -104,15 +100,17 @@ public class SignUpServlet extends HttpServlet {
 			e.printStackTrace();
 		}
 		
-		System.out.println("3"); /////DEBUG////////
-		
+		//get the appropriate collection for the user
 		MongoClient mongoClient = Util.getMongoClient();
 		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
-	    
 		Util.intialiazeDatabase();
-		
 		MongoCollection<Document> collection = Util.getUserAppropriateCollection(database, userType);
 		
+		/*
+		 * Check if the email already exists in the database. If it doesn't,
+		 * then proceed to enter the user's form data into the database. 
+		 * If it does, then return to signUp.jsp
+		 */
 		if(collection.find(eq("email", email)).first() == null) {
 			
 			Map<String, Object> fields = new HashMap<String, Object>();
@@ -127,7 +125,8 @@ public class SignUpServlet extends HttpServlet {
 				fields.put("patient_limit", patientLimit);
 				fields.put("can_receive_requests", true);
 			}
-			System.out.println("4"); /////DEBUG////////
+			
+			//Create a unique _id field for the user
 			boolean isDuplicate = false;
 			ObjectId id = null;
 			
@@ -139,50 +138,51 @@ public class SignUpServlet extends HttpServlet {
 				fields.remove("_id");
 				fields.put("_id", id);
 				
+				/*
+				 * Try to insert the user data into the collection. If the 
+				 * id already belongs to another user in the collection, then
+				 * make a new id and try again.
+				 */
 				try {
-					
-					//try to insert the document
-					Document doc = new Document("_id", id)
-							.append("email", email);
+				
+					Document doc = new Document(fields);
 					collection.insertOne(doc);
 					
 				} catch(MongoWriteException e) {
+					
 					if(e.getCode() == 11000) {
 						isDuplicate = true;
+					} else {
+						
+						response.sendRedirect(projectPath + "/signUp.jsp?databaseError=1");
+						return;
+						
 					}
+					
 				}
+				
 			} while(isDuplicate);
-			System.out.println("5"); /////DEBUG////////
-			try {
-				collection.replaceOne(eq(id), new Document(fields));
-			} catch(MongoWriteException e) {
-				response.sendRedirect(projectPath + "/signUp.jsp?databaseError=1");
-				return;
-			}
-			System.out.println("6"); /////DEBUG////////
+			
+			//Set the HTTP session attributes
 			HttpSession session = request.getSession();
 			session.setAttribute("id", id);
 			session.setAttribute("userType", userType);
 			session.setMaxInactiveInterval(-1);
 			
-			//Checking the session id
-			System.out.println("SignUpServlet: " + session.getId());
-			System.out.println("SignUpServlet - ID: " + id.toHexString());
-			
 			if(userType.equals("Patient")) {
-				System.out.println("7"); /////DEBUG////////
+				
 				request.getRequestDispatcher("/getTherapists").forward(request, response);
-				//response.sendRedirect(projectPath + "/getTherapists");
-				System.out.println("8"); /////DEBUG////////
 				return;
+				
 			} else {
+				
 				request.getRequestDispatcher("/therapistHomepage.jsp").forward(request, response);
 				return;
+				
 			}
 			
 		} else {
 			
-			//Write back to user saying email is taken
 			response.sendRedirect(projectPath + "/signUp.jsp?emailError=1");
 			return;
 			

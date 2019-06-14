@@ -1,5 +1,24 @@
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
     pageEncoding="ISO-8859-1"%>
+    
+<%@ page import="com.mongodb.MongoClient" %>
+<%@ page import="com.mongodb.client.MongoDatabase" %>
+	
+<%@ page import="org.bson.types.ObjectId" %>
+	
+<%@ page import="com.therapy.servlets.Util" %>
+<%@ page import="com.therapy.entities.*" %>
+	
+<%
+	
+	MongoClient mongoClient = Util.getMongoClient();
+	MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
+		
+	Patient patient = new Patient((ObjectId)session.getAttribute("id"), database);
+	Request[] requests = patient.getRequests();
+		
+%>
+    
 <!DOCTYPE html>
 <html>
 <head>
@@ -8,77 +27,26 @@
 	<script src="https://code.jquery.com/jquery-1.10.2.js"></script>
 </head>
 <body>
-	
-	<!-- TODO: There shouldn't be an option to accept a request while it is still pending on the 
-		 	   therapist to accept it -->
-	
-	<%@ page import="com.mongodb.MongoClient" %>
-	<%@ page import="com.mongodb.client.MongoDatabase" %>
-	
-	<%@ page import="org.bson.types.ObjectId" %>
-	
-	<%@ page import="com.therapy.servlets.Util" %>
-	<%@ page import="com.therapy.entities.*" %>
-	
-	<%
-	
-		MongoClient mongoClient = Util.getMongoClient();
-		MongoDatabase database = mongoClient.getDatabase(Util.DATABASE_NAME);
-		
-		Patient patient = new Patient((ObjectId)session.getAttribute("id"), database);
-		Request[] requests = patient.getRequests();
-		
-	%>
-	
-	<!--
-	<button id="myButton" class="float-left submit-button" >Home</button>
 
-	<script type="text/javascript">
-	    document.getElementById("myButton").onclick = function () {
-	        location.href = "www.yoursite.com";
-	    };
-	</script>
-	-->
-	
 	<%for(int i = 0; i < requests.length; i++) { %>
 		
 		<p><%=requests[i].getTherapist().getFullName() + ":"%></p>
 		
-		<%
-			String id = "p" + i;
-			if(requests[i].therapistAccepted()) {
-				out.print("<p style=\"background-color:lightblue\" id=\"" + id + "\">therapist Accepted!</p>");
-			} else {
-				
-				out.print("<p style=\"background-color:grey\" id=\"" + id + "\">Pending</p>");
-			}
-		
-		%>
+		<%String id = "p" + i;
+		  if(requests[i].therapistAccepted()) { %>
+			<p style="background-color:lightblue" id="<%=i%>">therapist Accepted!</p>
+		<%} else {%>
+			<p style="background-color:grey" id="<%=i%>">Pending</p>
+		<%}%>
 		
 		<!-- If the therapist accepted, then display an option for the patient to accept -->
 		<%if(requests[i].therapistAccepted()) { %> 
-			<button type="button" value="<%=requests[i].getId().toHexString()%>">Accept</button>
+			<button id="accept" type="button" value="<%=requests[i].getId().toHexString()%>">Accept</button>
 		 <%}%> 
-		 
-		
-		 
-		 <!--  TRY THE NEW WAY FIRST
-		<script type="text/javascript">
-			
-			$("button").click(function(event) {
-				$.post("/CulminatingVer8/asyncAcceptRequest", 
-						{ 
-							id: "<%//=requests[i].getId().toHexString()%>" 
-						},
-						function() {
-							document.getElementById("<%//="p" + i%>").style.backgroundColor = "grey"; 
-						});
-			});
-		</script>
-		-->
 		
 	<% } %>
 	
+	<!-- If the "accept" button was clicked, then accept the request in /asyncAcceptRequet servlet -->
 	<script type="text/javascript">
 		
 			$("button").click(function(event) {
@@ -95,7 +63,7 @@
 						});
 			});
 			
-		</script>
+	</script>
 	
 </body>
 </html>
