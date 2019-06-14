@@ -49,7 +49,7 @@ public final class Util {
 	 * <code>database</code>
 	 * 
 	 * @param database         the database <code>targetCollection</code> is 
-	 * 						   supposed to belong to
+	 *			   supposed to belong to
 	 * @param targetCollection the collection to check
 	 * @return                 <code>true</code>, if the collection exists
 	 */
