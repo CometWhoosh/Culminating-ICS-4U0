@@ -32,7 +32,7 @@ import static com.mongodb.client.model.Filters.nor;
 import static com.mongodb.client.model.Filters.or;
 
 /**
- * This class is servlet that retrieves ten <code>Therapist</code> objects for
+ * This class is a servlet that retrieves ten <code>Therapist</code> objects for
  * a patient that is signing up for the website to request. 
  * 
  * Nine of these <code>Therapist</code> objects represent therapists that have
@@ -158,38 +158,6 @@ public class GetTherapistsServlet extends HttpServlet {
 		//Sort the 30 therapists using the Comparator
 		Arrays.sort(randomTherapists, descendingRatingsComparator);
 		
-		/*
-		 
-		A custom selection sort that will sort the randomTherapists from 
-		highest to lowest according to their ratings:
-		
-		int index;
-		
-		for(int i = 0; i < randomTherapists.length - 1; i++) {
-			
-			index = i;
-			
-			for(int j = 0 + i; j < randomTherapists.length - 1; j++) {
-				
-				//Compare
-				Integer therapist1Rating = randomTherapist[index].getInteger("rating");
-				Integer therapist2Rating = randomTherapists[j].getInteger("rating");
-				if(therapist2Rating > therapist1Rating) {
-					index = j;
-				}
-				
-			}
-			
-			//Swap
-			Document temp = randomTherapists[i];
-			
-			randomTherapists[i] = randomTherapists[index];
-			randomTherapists[index] = temp;
-			
-		}
-		
-		*/
-		
 		//Get the highest 9 rated experienced therapists
 		Map<String, Integer> therapistsToSend = new LinkedHashMap<>();
 		String[] therapistIds = new String[10];
@@ -203,8 +171,6 @@ public class GetTherapistsServlet extends HttpServlet {
 			therapistsToSend.put(firstName + " " + lastName, rating);
 			
 		}
-		
-		
 		
 		//Set the name and id for the unexperienced therapist
 		String newTherapistName = newTherapist.getString("first_name") + " " + newTherapist.getString("last_name");
